@@ -1,0 +1,36 @@
+exclude: "^docs/|/migrations/"
+
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -    id: check-ast
+    -    id: trailing-whitespace
+    -    id: check-toml
+    -    id: end-of-file-fixer
+         exclude: 'styles.css.map'
+
+-   repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+    -   id: add-trailing-comma
+-   repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+
+    rev: v0.6.2
+    hooks:
+        - id: ruff
+          args: [ --fix ]
+          exclude: 'migrations'
+        - id: ruff-format
+          exclude: 'migrations'
+
+-   repo: https://github.com/asottile/yesqa
+    rev: v1.5.0
+    hooks:
+
+    -   id: yesqa
