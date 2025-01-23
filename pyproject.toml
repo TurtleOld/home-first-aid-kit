@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "home-first-aid-kit"
+version = "0.1.0"
+description = ""
+authors = ["Alexander Pavlov <dev@pavlovteam.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = "^2.0.37"
+pytelegrambotapi = "^4.26.0"
+alembic = "^1.14.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+wemake-python-styleguide = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
