@@ -8,8 +8,11 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 sqlalchemy = "^2.0.37"
-pytelegrambotapi = "^4.26.0"
 alembic = "^1.14.1"
+django = "^5.1.6"
+djangorestframework = "^3.15.2"
+markdown = "^3.7"
+django-filter = "^25.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -72,9 +75,13 @@ ignore = [
   "COM812",
   "D100",
   "D104",
+  "D105",
+  "D106",
+  "D107",
   "D203",
   "D212",
   "D212",
+  "RUF001",
 ]
 external = [ "WPS" ]
 
