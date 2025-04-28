@@ -1,8 +1,5 @@
-from django.utils.autoreload import raise_last_exception
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
-from yaml import serialize
-
 from app.healthbox.models import MedicineBox, Medicament
 from app.healthbox.serializers import MedicineBoxSerialize, MedicamentSerialize
 
@@ -32,6 +29,12 @@ class MedicamentAPIView(ListCreateAPIView):
     queryset = Medicament.objects.all()
     serializer_class = MedicamentSerialize
 
+
+    def get_queryset(self):
+        # Оптимизация запросов
+        return Medicament.objects.select_related('tablet', 'spray',
+                                                 'ointment').all()
+
     def list(self, request, *args, **kwargs):
         """Показать список лекарств."""
         queryset = self.get_queryset()
@@ -40,8 +43,10 @@ class MedicamentAPIView(ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """Создать\добавить лекарство в аптечку."""
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': request},)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=201, headers=headers)
+
+
