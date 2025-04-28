@@ -4,7 +4,7 @@ from app.healthbox.models import MedicineBox, Medicament
 
 class MedicineBoxSerialize(serializers.ModelSerializer):
     name = serializers.CharField()
-    description = serializers.CharField()
+    description = serializers.CharField(allow_blank=True)
     location = serializers.CharField()
 
     class Meta:
