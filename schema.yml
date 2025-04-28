@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Home first-aid kit
+  version: 0.1.0
+paths:
+  /:
+    get:
+      operationId: root_list
+      description: Представление списка коробок с лекарствами.
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicineBoxSerialize'
+          description: ''
+    post:
+      operationId: root_create
+      description: Представление списка коробок с лекарствами.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicineBoxSerialize'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MedicineBoxSerialize'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MedicineBoxSerialize'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicineBoxSerialize'
+          description: ''
+  /medicament/:
+    get:
+      operationId: medicament_list
+      description: Представление списка лекарств.
+      tags:
+      - medicament
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicamentSerialize'
+          description: ''
+    post:
+      operationId: medicament_create
+      description: Представление списка лекарств.
+      tags:
+      - medicament
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicamentSerialize'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MedicamentSerialize'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MedicamentSerialize'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicamentSerialize'
+          description: ''
+components:
+  schemas:
+    MedicamentSerialize:
+      type: object
+      properties:
+        name:
+          type: string
+        medicament_type:
+          type: string
+        quantity:
+          type: integer
+        medicine_box:
+          type: integer
+        expiration_date:
+          type: string
+          format: date
+      required:
+      - expiration_date
+      - medicament_type
+      - medicine_box
+      - name
+      - quantity
+    MedicineBoxSerialize:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+      required:
+      - description
+      - location
+      - name
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
