@@ -10,3 +10,6 @@ theme:
     hljs_languages:
         - yaml
         - django
+
+nav:
+    - Getting started: index.md
