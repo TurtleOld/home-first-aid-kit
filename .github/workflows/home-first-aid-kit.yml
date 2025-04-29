@@ -24,7 +24,7 @@ jobs:
     - name: Install Dependencies with Poetry
       run: |
         pip install poetry
-        poetry install
+        poetry install --no-root
     - name: Run Migrations
       run: |
         python manage.py migrate
