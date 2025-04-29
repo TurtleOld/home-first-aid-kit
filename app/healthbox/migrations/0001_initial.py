@@ -5,23 +5,64 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='Medicament',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, verbose_name='Название лекарства')),
-                ('medicament_type', models.CharField(choices=[('tablet', 'Таблетка'), ('capsule', 'Капсула'), ('spray', 'Спрей'), ('ointment', 'Мазь'), ('cream', 'Крем'), ('bandage', 'Бинт'), ('other', 'Другое')], default='other', max_length=50, verbose_name='Тип лекарства')),
-                ('quantity', models.PositiveIntegerField(default=0, verbose_name='Количество')),
-                ('expiration_date', models.DateField(blank=True, null=True, verbose_name='Срок годности')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Дата обновления')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'name',
+                    models.CharField(max_length=255, verbose_name='Название лекарства'),
+                ),
+                (
+                    'medicament_type',
+                    models.CharField(
+                        choices=[
+                            ('tablet', 'Таблетка'),
+                            ('capsule', 'Капсула'),
+                            ('spray', 'Спрей'),
+                            ('ointment', 'Мазь'),
+                            ('cream', 'Крем'),
+                            ('bandage', 'Бинт'),
+                            ('other', 'Другое'),
+                        ],
+                        default='other',
+                        max_length=50,
+                        verbose_name='Тип лекарства',
+                    ),
+                ),
+                (
+                    'quantity',
+                    models.PositiveIntegerField(default=0, verbose_name='Количество'),
+                ),
+                (
+                    'expiration_date',
+                    models.DateField(
+                        blank=True, null=True, verbose_name='Срок годности'
+                    ),
+                ),
+                (
+                    'created_at',
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name='Дата создания'
+                    ),
+                ),
+                (
+                    'updated_at',
+                    models.DateTimeField(auto_now=True, verbose_name='Дата обновления'),
+                ),
             ],
             options={
                 'verbose_name': 'Лекарство',
@@ -31,12 +72,42 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MedicineBox',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, verbose_name='Название коробки')),
-                ('description', models.TextField(blank=True, null=True, verbose_name='Описание')),
-                ('location', models.CharField(blank=True, max_length=255, null=True, verbose_name='Местоположение')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Дата обновления')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'name',
+                    models.CharField(max_length=255, verbose_name='Название коробки'),
+                ),
+                (
+                    'description',
+                    models.TextField(blank=True, null=True, verbose_name='Описание'),
+                ),
+                (
+                    'location',
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name='Местоположение',
+                    ),
+                ),
+                (
+                    'created_at',
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name='Дата создания'
+                    ),
+                ),
+                (
+                    'updated_at',
+                    models.DateTimeField(auto_now=True, verbose_name='Дата обновления'),
+                ),
             ],
             options={
                 'verbose_name': 'Коробка с лекарствами',
@@ -46,9 +117,29 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Ointment',
             fields=[
-                ('medicament_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='healthbox.medicament')),
-                ('weight', models.DecimalField(decimal_places=2, max_digits=5, verbose_name='Вес (г)')),
-                ('texture', models.CharField(blank=True, max_length=50, null=True, verbose_name='Текстура')),
+                (
+                    'medicament_ptr',
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to='healthbox.medicament',
+                    ),
+                ),
+                (
+                    'weight',
+                    models.DecimalField(
+                        decimal_places=2, max_digits=5, verbose_name='Вес (г)'
+                    ),
+                ),
+                (
+                    'texture',
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name='Текстура'
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'Мазь',
@@ -59,9 +150,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Spray',
             fields=[
-                ('medicament_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='healthbox.medicament')),
-                ('volume', models.DecimalField(decimal_places=2, max_digits=5, verbose_name='Объем (мл)')),
-                ('nozzle_type', models.CharField(blank=True, max_length=50, null=True, verbose_name='Тип распылителя')),
+                (
+                    'medicament_ptr',
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to='healthbox.medicament',
+                    ),
+                ),
+                (
+                    'volume',
+                    models.DecimalField(
+                        decimal_places=2, max_digits=5, verbose_name='Объем (мл)'
+                    ),
+                ),
+                (
+                    'nozzle_type',
+                    models.CharField(
+                        blank=True,
+                        max_length=50,
+                        null=True,
+                        verbose_name='Тип распылителя',
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'Спрей',
@@ -72,9 +186,24 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tablet',
             fields=[
-                ('medicament_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='healthbox.medicament')),
+                (
+                    'medicament_ptr',
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to='healthbox.medicament',
+                    ),
+                ),
                 ('dosage', models.CharField(max_length=50, verbose_name='Дозировка')),
-                ('shape', models.CharField(blank=True, max_length=50, null=True, verbose_name='Форма')),
+                (
+                    'shape',
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name='Форма'
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'Таблетка',
@@ -85,6 +214,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='medicament',
             name='medicine_box',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='medicaments', to='healthbox.medicinebox', verbose_name='Коробка'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='medicaments',
+                to='healthbox.medicinebox',
+                verbose_name='Коробка',
+            ),
         ),
     ]

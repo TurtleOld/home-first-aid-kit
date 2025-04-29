@@ -1,6 +1,6 @@
 from django.urls import path
 
-from app.healthbox.apis import MedicineBoxAPIView, MedicamentAPIView
+from app.healthbox.apis import MedicamentAPIView, MedicineBoxAPIView
 
 app_name = 'healthbox'
 urlpatterns = [

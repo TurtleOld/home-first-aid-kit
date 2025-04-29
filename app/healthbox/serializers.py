@@ -1,10 +1,9 @@
 from rest_framework import serializers
-from app.healthbox.models import MedicineBox, Medicament, Tablet, Spray, \
-    Ointment
+
+from app.healthbox.models import Medicament, MedicineBox, Ointment, Spray, Tablet
 
 
 class MedicineBoxSerialize(serializers.ModelSerializer):
-
     class Meta:
         model = MedicineBox
         fields = ['name', 'description', 'location']
@@ -22,16 +21,15 @@ class MedicamentSerialize(serializers.ModelSerializer):
             'quantity',
             'expiration_date',
             'medicine_box',
-            'details'
+            'details',
         ]
 
     def get_details(self, obj):
-        # Возвращаем специфические данные в зависимости от типа лекарства
         if hasattr(obj, 'tablet'):
             return TabletSerialize(obj.tablet).data
-        elif hasattr(obj, 'spray'):
+        if hasattr(obj, 'spray'):
             return SpraySerialize(obj.spray).data
-        elif hasattr(obj, 'ointment'):
+        if hasattr(obj, 'ointment'):
             return OintmentSerialize(obj.ointment).data
         return None
 
@@ -39,7 +37,6 @@ class MedicamentSerialize(serializers.ModelSerializer):
         medicament_type = validated_data.get('medicament_type')
         extra_data = self.context['request'].data
 
-        # Создаем объект подкласса напрямую
         if medicament_type == 'tablet':
             return Tablet.objects.create(
                 name=validated_data['name'],
@@ -48,9 +45,9 @@ class MedicamentSerialize(serializers.ModelSerializer):
                 expiration_date=validated_data['expiration_date'],
                 medicine_box=validated_data['medicine_box'],
                 dosage=extra_data.get('dosage'),
-                shape=extra_data.get('shape')
+                shape=extra_data.get('shape'),
             )
-        elif medicament_type == 'spray':
+        if medicament_type == 'spray':
             return Spray.objects.create(
                 name=validated_data['name'],
                 medicament_type=validated_data['medicament_type'],
@@ -58,9 +55,9 @@ class MedicamentSerialize(serializers.ModelSerializer):
                 expiration_date=validated_data['expiration_date'],
                 medicine_box=validated_data['medicine_box'],
                 volume=extra_data.get('volume'),
-                nozzle_type=extra_data.get('nozzle_type')
+                nozzle_type=extra_data.get('nozzle_type'),
             )
-        elif medicament_type == 'ointment':
+        if medicament_type == 'ointment':
             return Ointment.objects.create(
                 name=validated_data['name'],
                 medicament_type=validated_data['medicament_type'],
@@ -68,10 +65,9 @@ class MedicamentSerialize(serializers.ModelSerializer):
                 expiration_date=validated_data['expiration_date'],
                 medicine_box=validated_data['medicine_box'],
                 weight=extra_data.get('weight'),
-                texture=extra_data.get('texture')
+                texture=extra_data.get('texture'),
             )
 
-        # Если тип лекарства не определен, создаем обычный Medicament
         return Medicament.objects.create(**validated_data)
 
 
