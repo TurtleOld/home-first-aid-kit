@@ -5,12 +5,25 @@ class MedicineBox(models.Model):
     """Модель коробки для хранения лекарств."""
 
     name = models.CharField(max_length=255, verbose_name='Название коробки')
-    description = models.TextField(blank=True, null=True, verbose_name='Описание')
-    location = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Местоположение'
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Описание',
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name='Местоположение',
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
 
     def __str__(self):
         return self.name
@@ -42,7 +55,9 @@ class Medicament(models.Model):
     )
     quantity = models.PositiveIntegerField(default=0, verbose_name='Количество')
     expiration_date = models.DateField(
-        blank=True, null=True, verbose_name='Срок годности'
+        blank=True,
+        null=True,
+        verbose_name='Срок годности',
     )
     medicine_box = models.ForeignKey(
         MedicineBox,
@@ -50,8 +65,14 @@ class Medicament(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Коробка',
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
 
     def __str__(self):
         return f'{self.name} ({self.get_medicament_type_display()})'
@@ -65,10 +86,14 @@ class Tablet(Medicament):
     """Модель для таблеток."""
 
     dosage = models.CharField(
-        max_length=50, verbose_name='Дозировка'
+        max_length=50,
+        verbose_name='Дозировка',
     )  # Например, "500 мг"
     shape = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name='Форма'
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Форма',
     )  # Например, "круглая"
 
     class Meta:

@@ -29,6 +29,18 @@ mkdocs-material = "^9.6.12"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.ruff.isort]
+known-first-party = ["healthbox"]
+
+[tool.isort]
+profile = "black"
+line_length = 80
+
+[tool.ruff]
+line-length = 80
+select = ["ALL"]
+fix = true
+
 [tool.ruff.format]
 quote-style = "single"
 docstring-code-format = false
