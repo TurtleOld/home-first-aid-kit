@@ -1,0 +1,12 @@
+site_name: Home first-aid kit
+
+
+repo_url: https://github.com/TurtleOld/home-first-aid-kit
+
+theme:
+    name: material
+    locale: en
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - django
