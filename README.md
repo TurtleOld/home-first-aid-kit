@@ -59,10 +59,22 @@ DATABASE_URL= uv run python manage.py runserver
 
 Если `uv` установлен в `~/.local/bin`, но не находится в shell, используйте `/home/alexander/.local/bin/uv` или добавьте `~/.local/bin` в `PATH`.
 
+## Auth API
+
+- `POST /api/auth/register` — создать администратора и семью
+- `POST /api/auth/login` — получить JWT access/refresh
+- `POST /api/auth/refresh` — обновить access-токен
+- `GET /api/auth/me` — текущий пользователь, семья и роль
+- `GET /api/invitations` — список активных приглашений семьи для admin
+- `POST /api/invitations` — создать приглашение для admin
+- `GET /api/invitations/{token}` — публичная проверка приглашения
+- `POST /api/invitations/{token}/accept` — принять приглашение новым пользователем
+- `DELETE /api/invitations/{id}` — отозвать приглашение для admin
+
 ## Структура
 
 ```text
-backend/      Django project: config + core
+backend/      Django project: config + accounts + core
 frontend/     Vue 3 + Vite + vite-plugin-pwa
 docker/       Dockerfiles and nginx config
 README.md     запуск dev/prod каркаса
