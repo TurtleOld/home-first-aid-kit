@@ -13,6 +13,8 @@ dependencies = [
     "gunicorn>=23.0,<24.0",
     "psycopg[binary]>=3.2,<3.3",
     "python-dotenv>=1.1,<1.2",
+    "playwright>=1.52,<1.53",
+    "pillow>=11.2,<11.3",
 ]
 
 [tool.uv]

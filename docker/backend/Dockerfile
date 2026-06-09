@@ -16,6 +16,7 @@ RUN apt-get update \
 
 COPY backend/pyproject.toml backend/uv.lock* /app/backend/
 RUN uv sync --no-cache
+RUN uv run playwright install --with-deps chromium
 
 COPY backend /app/backend
 

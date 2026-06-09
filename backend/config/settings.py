@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "accounts",
     "core",
+    "medicines",
 ]
 
 MIDDLEWARE = [
@@ -127,4 +128,14 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+        "drug_lookup": "20/day",
+    },
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "home-first-aid-kit",
+    }
 }
