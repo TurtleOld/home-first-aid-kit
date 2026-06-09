@@ -1,6 +1,6 @@
 # Домашняя аптечка
 
-MVP-приложение для учёта лекарств в домашней аптечке. Каркас фазы 0 содержит Django + DRF backend, Vue 3 + Vite + PWA frontend, dev Docker Compose на SQLite и prod Docker Compose на PostgreSQL.
+MVP-приложение для учёта лекарств в домашней аптечке. Проект использует Django + DRF backend, Vue 3 + Vite + PWA frontend, dev Docker Compose на SQLite и prod Docker Compose на PostgreSQL.
 
 ## Требования
 
