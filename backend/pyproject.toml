@@ -1,0 +1,18 @@
+[project]
+name = "home-first-aid-kit-backend"
+version = "0.1.0"
+description = "Django REST backend for Home First-Aid Kit"
+readme = "../README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "Django>=5.2,<5.3",
+    "djangorestframework>=3.16,<3.17",
+    "django-cors-headers>=4.7,<4.8",
+    "dj-database-url>=2.3,<2.4",
+    "gunicorn>=23.0,<24.0",
+    "psycopg[binary]>=3.2,<3.3",
+    "python-dotenv>=1.1,<1.2",
+]
+
+[tool.uv]
+package = false

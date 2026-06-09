@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Домашняя аптечка">
+  <rect width="512" height="512" rx="96" fill="#f8fafc"/>
+  <rect x="96" y="160" width="320" height="224" rx="34" fill="#0f766e"/>
+  <rect x="144" y="120" width="224" height="80" rx="28" fill="#14b8a6"/>
+  <rect x="232" y="202" width="48" height="140" rx="12" fill="#ffffff"/>
+  <rect x="186" y="248" width="140" height="48" rx="12" fill="#ffffff"/>
+</svg>
