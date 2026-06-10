@@ -1,0 +1,138 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+let authHandlers = {
+  getAccessToken: () => null,
+  getRefreshToken: () => null,
+  refreshAccessToken: async () => false
+}
+
+class ApiError extends Error {
+  constructor(message, { status, data } = {}) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.data = data
+  }
+}
+
+async function parseResponse(response) {
+  if (response.status === 204) {
+    return null
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+  if (contentType.includes('application/json')) {
+    return response.json()
+  }
+
+  return response.text()
+}
+
+function buildUrl(path) {
+  if (/^https?:\/\//i.test(path)) {
+    return path
+  }
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${API_BASE_URL}${normalizedPath}`
+}
+
+function getErrorMessage(data, fallback) {
+  if (!data) {
+    return fallback
+  }
+
+  if (typeof data === 'string') {
+    return data || fallback
+  }
+
+  if (typeof data.detail === 'string') {
+    return data.detail
+  }
+
+  if (typeof data.error === 'string') {
+    return data.error
+  }
+
+  const firstField = Object.values(data)[0]
+  if (Array.isArray(firstField) && firstField.length > 0) {
+    return firstField.join(' ')
+  }
+
+  if (typeof firstField === 'string') {
+    return firstField
+  }
+
+  return fallback
+}
+
+async function rawRequest(path, options = {}, accessToken = null) {
+  const headers = new Headers(options.headers || {})
+  const hasBody = options.body !== undefined && options.body !== null
+
+  if (hasBody && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  const response = await fetch(buildUrl(path), {
+    ...options,
+    headers
+  })
+  const data = await parseResponse(response)
+
+  if (!response.ok) {
+    throw new ApiError(getErrorMessage(data, 'Ошибка запроса'), {
+      status: response.status,
+      data
+    })
+  }
+
+  return data
+}
+
+async function request(path, options = {}) {
+  const accessToken = authHandlers.getAccessToken()
+
+  try {
+    return await rawRequest(path, options, accessToken)
+  } catch (error) {
+    if (error.status !== 401 || options.skipAuthRetry || !authHandlers.getRefreshToken()) {
+      throw error
+    }
+
+    const refreshed = await authHandlers.refreshAccessToken()
+    if (!refreshed) {
+      throw error
+    }
+
+    return rawRequest(path, { ...options, skipAuthRetry: true }, authHandlers.getAccessToken())
+  }
+}
+
+function configureApiAuth(handlers) {
+  authHandlers = {
+    ...authHandlers,
+    ...handlers
+  }
+}
+
+function jsonRequest(path, method, payload, options = {}) {
+  return request(path, {
+    ...options,
+    method,
+    body: payload === undefined ? undefined : JSON.stringify(payload)
+  })
+}
+
+export const api = {
+  get: (path, options) => request(path, { ...options, method: 'GET' }),
+  post: (path, payload, options) => jsonRequest(path, 'POST', payload, options),
+  patch: (path, payload, options) => jsonRequest(path, 'PATCH', payload, options),
+  delete: (path, options) => request(path, { ...options, method: 'DELETE' }),
+  rawRequest
+}
+
+export { ApiError, configureApiAuth }
