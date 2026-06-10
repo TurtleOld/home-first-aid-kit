@@ -645,7 +645,9 @@ def parse_variant(url, form, dosage):
             browser, page = new_page(playwright, url)
             try:
                 row_text = ""
-                if form or dosage:
+                # Шаг выбора есть только на страницах с таблицей вариантов;
+                # препарат в одной форме разбираем как есть, без клика.
+                if (form or dosage) and extract_variants_from_page(page):
                     row_text = click_selected_variant(page, form=form, dosage=dosage)
                 return parse_detail_page(page, source_url=url, form=form, dosage=dosage, row_text=row_text)
             finally:

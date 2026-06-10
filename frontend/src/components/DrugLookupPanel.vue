@@ -39,8 +39,9 @@ async function findForms() {
     tradeName.value = response.trade_name
 
     if (response.single_variant) {
-      // Страница без таблицы выбора форм — сразу разбираем единственный вариант.
-      await parseVariant(response.variants[0] || { form: '', dosage: '' })
+      // Страница без таблицы выбора форм — разбираем её как есть, без шага выбора:
+      // форму/дозировку не передаём, чтобы бэкенд не искал строку выбора.
+      await parseVariant({ form: '', dosage: '' })
       return
     }
 
