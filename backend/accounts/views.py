@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Invitation
+from .models import Family, Invitation
 from .permissions import IsFamilyAdmin
 from .selectors import get_current_membership
 from .serializers import (
@@ -20,10 +20,26 @@ from .serializers import (
 )
 
 
+def registration_is_open():
+    return not Family.objects.exists()
+
+
+class RegistrationStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"open": registration_is_open()})
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        if not registration_is_open():
+            return Response(
+                {"detail": "Регистрация закрыта: администратор уже зарегистрирован. Попросите у него ссылку-приглашение."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()

@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from accounts.models import Family, Invitation, Membership
+from accounts.serializers import tokens_for_user
 
 
 User = get_user_model()
@@ -31,6 +32,36 @@ class AuthInvitationTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         return response
+
+    def create_family_admin(self, username, family_name):
+        user = User.objects.create_user(username=username, password="strong-password-123")
+        family = Family.objects.create(name=family_name)
+        Membership.objects.create(user=user, family=family, role=Membership.Role.ADMIN)
+        return user, family, tokens_for_user(user)["access"]
+
+    def test_registration_closes_after_first_admin(self):
+        status_response = self.client.get("/api/auth/registration-status")
+        self.assertEqual(status_response.status_code, status.HTTP_200_OK)
+        self.assertTrue(status_response.data["open"])
+
+        self.register_admin()
+
+        status_response = self.client.get("/api/auth/registration-status")
+        self.assertEqual(status_response.status_code, status.HTTP_200_OK)
+        self.assertFalse(status_response.data["open"])
+
+        second_response = self.client.post(
+            "/api/auth/register",
+            {
+                "username": "second",
+                "password": "strong-password-123",
+                "family_name": "Second family",
+            },
+            format="json",
+        )
+        self.assertEqual(second_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(User.objects.filter(username="second").exists())
+        self.assertEqual(Family.objects.count(), 1)
 
     def test_admin_registers_invites_and_member_accepts(self):
         register_response = self.register_admin()
@@ -79,12 +110,10 @@ class AuthInvitationTests(TestCase):
 
     def test_family_admin_sees_only_own_invitations(self):
         first = self.register_admin(username="first", family_name="First")
-        second = self.register_admin(username="second", family_name="Second")
+        second_user, second_family, _ = self.create_family_admin("second", "Second")
 
         first_user = User.objects.get(username="first")
-        second_user = User.objects.get(username="second")
         first_family = Membership.objects.get(user=first_user).family
-        second_family = Membership.objects.get(user=second_user).family
         first_invite = Invitation.objects.create(
             family=first_family,
             created_by=first_user,
@@ -124,13 +153,13 @@ class AuthInvitationTests(TestCase):
 
     def test_other_family_member_cannot_revoke_invitation(self):
         first = self.register_admin(username="first", family_name="First")
-        second = self.register_admin(username="second", family_name="Second")
+        _, _, second_access = self.create_family_admin("second", "Second")
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {first.data['access']}")
         invite_response = self.client.post("/api/invitations", {}, format="json")
         invite_id = invite_response.data["id"]
 
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {second.data['access']}")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {second_access}")
         response = self.client.delete(f"/api/invitations/{invite_id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Invitation.objects.get(id=invite_id).is_active)
