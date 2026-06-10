@@ -127,10 +127,20 @@ function jsonRequest(path, method, payload, options = {}) {
   })
 }
 
+function formRequest(path, method, formData, options = {}) {
+  return request(path, {
+    ...options,
+    method,
+    body: formData
+  })
+}
+
 export const api = {
   get: (path, options) => request(path, { ...options, method: 'GET' }),
   post: (path, payload, options) => jsonRequest(path, 'POST', payload, options),
   patch: (path, payload, options) => jsonRequest(path, 'PATCH', payload, options),
+  postForm: (path, formData, options) => formRequest(path, 'POST', formData, options),
+  patchForm: (path, formData, options) => formRequest(path, 'PATCH', formData, options),
   delete: (path, options) => request(path, { ...options, method: 'DELETE' }),
   rawRequest
 }

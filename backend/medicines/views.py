@@ -8,6 +8,7 @@ from accounts.permissions import IsFamilyMember
 from accounts.selectors import get_current_family
 from core.mixins import create_change_log, diff_snapshots, snapshot_instance
 from core.models import ChangeLog
+from core.pagination import ChangeLogPagination
 from core.serializers import ChangeLogSerializer
 
 from .models import Medicine, ShoppingItem
@@ -129,6 +130,7 @@ class ShoppingItemViewSet(FamilyScopedModelViewSet):
 class ChangeLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = ChangeLogSerializer
     permission_classes = [IsAuthenticated, IsFamilyMember]
+    pagination_class = ChangeLogPagination
 
     def get_queryset(self):
         return (

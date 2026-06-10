@@ -31,6 +31,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/medicines/new',
+    name: 'medicine-new',
+    component: () => import('../views/MedicineFormView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/medicines/:id/edit',
+    name: 'medicine-edit',
+    component: () => import('../views/MedicineFormView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/shopping',
     name: 'shopping',
     component: () => import('../views/ShoppingView.vue'),

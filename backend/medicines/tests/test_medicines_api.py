@@ -75,7 +75,8 @@ class MedicinesApiTests(TestCase):
         self.assertEqual(patch_response.status_code, status.HTTP_200_OK, patch_response.data)
 
         log_response = self.client.get("/api/changelog")
-        actions = [item["action"] for item in log_response.data]
+        self.assertIn("results", log_response.data)
+        actions = [item["action"] for item in log_response.data["results"]]
         self.assertIn(ChangeLog.Action.CREATE, actions)
         self.assertIn(ChangeLog.Action.UPDATE, actions)
 

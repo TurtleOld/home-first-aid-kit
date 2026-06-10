@@ -1,10 +1,27 @@
+import json
+
 from rest_framework import serializers
 
 from .models import Medicine, ShoppingItem
 
 
+class MultipartFriendlyJSONField(serializers.JSONField):
+    """JSONField, принимающий JSON-строку — multipart-формы передают объект текстом."""
+
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            if not data.strip():
+                return None
+            try:
+                data = json.loads(data)
+            except ValueError:
+                self.fail("invalid")
+        return super().to_internal_value(data)
+
+
 class MedicineSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
+    reference_data = MultipartFriendlyJSONField(required=False, allow_null=True)
 
     class Meta:
         model = Medicine
