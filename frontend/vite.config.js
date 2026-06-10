@@ -6,16 +6,49 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
+      injectRegister: 'auto',
       registerType: 'autoUpdate',
       manifest: {
         name: 'Домашняя аптечка',
         short_name: 'Аптечка',
         description: 'Учёт лекарств в домашней аптечке',
+        lang: 'ru',
         theme_color: '#f8fafc',
         background_color: '#f8fafc',
         display: 'standalone',
+        orientation: 'portrait-primary',
+        scope: '/',
         start_url: '/',
-        icons: [{ src: '/pwa-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }]
+        icons: [
+          { src: '/pwa-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/pwa-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/media\//],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' &&
+              url.origin === self.location.origin &&
+              url.pathname.startsWith('/media/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'media-cache',
+              expiration: {
+                maxEntries: 80,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ]
       }
     })
   ],
