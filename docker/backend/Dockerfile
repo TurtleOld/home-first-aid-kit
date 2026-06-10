@@ -1,3 +1,13 @@
+FROM node:24-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend ./
+RUN npm run build
+
 FROM python:3.13-slim-bookworm
 
 COPY --from=ghcr.io/astral-sh/uv:0.7.13 /uv /uvx /bin/
@@ -38,5 +48,11 @@ RUN uv sync --no-cache
 RUN uv run playwright install chromium
 
 COPY backend /app/backend
+COPY docker/nginx/nginx.conf /app/nginx/default.conf
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+COPY docker/backend/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
