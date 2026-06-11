@@ -586,6 +586,58 @@ h2 {
   font-weight: 700;
 }
 
+.quantity-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.intake-button {
+  padding: 0 9px;
+  min-height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.intake-button:hover:enabled {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.intake-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.low-stock-text {
+  color: var(--danger);
+}
+
+.low-stock-badge {
+  flex-basis: 100%;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--warning) 38%, var(--border));
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: var(--warning);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.chip-low-stock {
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  color: var(--warning);
+}
+
 .medicine-actions {
   display: flex;
   gap: 6px;
@@ -985,6 +1037,10 @@ h2 {
 
 .changelog-entry[data-action='delete'] .changelog-marker {
   background: var(--danger);
+}
+
+.changelog-entry[data-action='intake'] .changelog-marker {
+  background: var(--accent);
 }
 
 .changelog-body {

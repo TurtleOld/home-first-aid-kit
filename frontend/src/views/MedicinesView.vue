@@ -20,12 +20,15 @@ const notice = ref('')
 const filters = reactive({
   search: '',
   status: '',
-  storage: ''
+  storage: '',
+  lowStock: false
 })
 
 let searchDebounce = null
 
-const hasFilters = computed(() => Boolean(filters.search || filters.status || filters.storage))
+const hasFilters = computed(() =>
+  Boolean(filters.search || filters.status || filters.storage || filters.lowStock)
+)
 
 async function loadMedicines() {
   isLoading.value = true
@@ -35,6 +38,7 @@ async function loadMedicines() {
   if (filters.search) params.set('search', filters.search)
   if (filters.status) params.set('status', filters.status)
   if (filters.storage) params.set('storage', filters.storage)
+  if (filters.lowStock) params.set('low_stock', 'true')
   const query = params.toString()
 
   try {
@@ -61,11 +65,52 @@ function toggleFilter(name, value) {
   loadMedicines()
 }
 
+function toggleLowStockFilter() {
+  filters.lowStock = !filters.lowStock
+  loadMedicines()
+}
+
 function resetFilters() {
   filters.search = ''
   filters.status = ''
   filters.storage = ''
+  filters.lowStock = false
   loadMedicines()
+}
+
+async function recordIntake(medicine, amount) {
+  notice.value = ''
+  error.value = ''
+
+  try {
+    const updated = await api.post(`/medicines/${medicine.id}/intake`, { amount })
+    const index = medicines.value.findIndex((item) => item.id === medicine.id)
+    if (index !== -1) {
+      // При активном фильтре «Заканчиваются» позиция могла перестать ему соответствовать,
+      // но не убираем её сразу — пользователь видит результат списания.
+      medicines.value[index] = updated
+    }
+    notice.value = `«${medicine.trade_name}»: списано ${formatQuantity(amount)} ${unitLabel(medicine.unit)}, осталось ${formatQuantity(updated.quantity)}`
+  } catch (requestError) {
+    error.value = requestError.message || 'Не удалось отметить приём'
+  }
+}
+
+function recordCustomIntake(medicine) {
+  const raw = window.prompt(
+    `Сколько ${unitLabel(medicine.unit)} списать из «${medicine.trade_name}»?`,
+    '1'
+  )
+  if (raw === null) {
+    return
+  }
+
+  const amount = Number(String(raw).trim().replace(',', '.'))
+  if (!Number.isFinite(amount) || amount <= 0) {
+    error.value = 'Введите число больше нуля.'
+    return
+  }
+  recordIntake(medicine, amount)
 }
 
 async function addToShopping(medicine) {
@@ -147,6 +192,14 @@ onMounted(loadMedicines)
         >
           {{ option.label }}
         </button>
+        <button
+          type="button"
+          class="chip"
+          :class="{ 'chip-active chip-low-stock': filters.lowStock }"
+          @click="toggleLowStockFilter"
+        >
+          Заканчиваются
+        </button>
         <button v-if="hasFilters" type="button" class="chip chip-reset" @click="resetFilters">
           Сбросить
         </button>
@@ -185,7 +238,34 @@ onMounted(loadMedicines)
             </div>
             <div>
               <dt>Остаток</dt>
-              <dd>{{ formatQuantity(medicine.quantity) }} {{ unitLabel(medicine.unit) }}</dd>
+              <dd class="quantity-row">
+                <span :class="{ 'low-stock-text': medicine.is_low_stock }">
+                  {{ formatQuantity(medicine.quantity) }} {{ unitLabel(medicine.unit) }}
+                </span>
+                <button
+                  class="intake-button"
+                  type="button"
+                  :disabled="Number(medicine.quantity) <= 0"
+                  :aria-label="`Отметить приём: ${medicine.trade_name}, минус 1`"
+                  title="Отметить приём одной единицы"
+                  @click="recordIntake(medicine, 1)"
+                >
+                  −1
+                </button>
+                <button
+                  class="intake-button"
+                  type="button"
+                  :disabled="Number(medicine.quantity) <= 0"
+                  :aria-label="`Списать произвольное количество: ${medicine.trade_name}`"
+                  title="Списать произвольное количество"
+                  @click="recordCustomIntake(medicine)"
+                >
+                  −…
+                </button>
+                <span v-if="medicine.is_low_stock" class="low-stock-badge">
+                  Заканчивается — пора покупать
+                </span>
+              </dd>
             </div>
             <div>
               <dt>Годен до</dt>

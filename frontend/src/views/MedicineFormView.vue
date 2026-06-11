@@ -25,6 +25,7 @@ const form = reactive({
   dosage: '',
   quantity: '',
   unit: 'piece',
+  low_stock_threshold: '',
   storage: 'kit',
   notes: '',
   instruction_url: '',
@@ -169,6 +170,10 @@ function buildPayload() {
   return {
     ...form,
     quantity: form.quantity === '' ? '0' : String(form.quantity),
+    low_stock_threshold:
+      form.low_stock_threshold === '' || form.low_stock_threshold === null
+        ? null
+        : String(form.low_stock_threshold),
     expiry_date: monthYearToIsoDate(expiry.month, expiry.year),
     source_url: sourceUrl.value,
     reference_data: referenceData.value
@@ -325,6 +330,21 @@ async function removeMedicine() {
               </select>
             </label>
           </div>
+
+          <label>
+            Порог «заканчивается»
+            <input
+              v-model="form.low_stock_threshold"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="например, 5"
+            />
+            <span class="field-caption">
+              Когда остаток опустится до этого значения, лекарство будет помечено как
+              заканчивающееся. Оставьте пустым, чтобы не отслеживать.
+            </span>
+          </label>
 
           <div class="expiry-row">
             <span class="field-caption">Годен до (месяц и год) *</span>

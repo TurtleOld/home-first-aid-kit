@@ -18,7 +18,8 @@ const totalPages = computed(() => Math.max(1, Math.ceil(count.value / PAGE_SIZE)
 const ACTION_LABELS = {
   create: 'добавил(а)',
   update: 'изменил(а)',
-  delete: 'удалил(а)'
+  delete: 'удалил(а)',
+  intake: 'отметил(а) приём:'
 }
 
 const ENTITY_LABELS = {
@@ -33,6 +34,7 @@ const FIELD_LABELS = {
   dosage: 'Дозировка',
   quantity: 'Количество',
   unit: 'Единица',
+  low_stock_threshold: 'Порог остатка',
   expiry_date: 'Срок годности',
   storage: 'Хранение',
   notes: 'Заметки',
@@ -88,9 +90,9 @@ function actorName(entry) {
   return entry.actor?.username || 'Кто-то'
 }
 
-// Diff показываем только для update; create/delete сворачиваем в одну строку.
+// Diff показываем для update и intake; create/delete сворачиваем в одну строку.
 function entryDiff(entry) {
-  if (entry.action !== 'update') {
+  if (entry.action !== 'update' && entry.action !== 'intake') {
     return []
   }
 
