@@ -9,6 +9,7 @@ class ChangeLog(models.Model):
         CREATE = "create", "Create"
         UPDATE = "update", "Update"
         DELETE = "delete", "Delete"
+        INTAKE = "intake", "Intake"
 
     family = models.ForeignKey(
         Family,

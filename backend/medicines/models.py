@@ -38,6 +38,13 @@ class Medicine(models.Model):
     dosage = models.CharField(max_length=120, blank=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     unit = models.CharField(max_length=20, choices=Unit.choices, default=Unit.PIECE)
+    low_stock_threshold = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Остаток, при котором лекарство считается заканчивающимся; пусто — не отслеживать.",
+    )
     expiry_date = models.DateField()
     storage = models.CharField(max_length=20, choices=Storage.choices, default=Storage.KIT)
     notes = models.TextField(blank=True)
@@ -66,6 +73,10 @@ class Medicine(models.Model):
     @property
     def status(self):
         return compute_expiry_status(self.expiry_date, timezone.localdate())
+
+    @property
+    def is_low_stock(self):
+        return self.low_stock_threshold is not None and self.quantity <= self.low_stock_threshold
 
 
 class ShoppingItem(models.Model):

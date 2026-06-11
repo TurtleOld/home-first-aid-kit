@@ -1,6 +1,9 @@
-from django.db.models import Q
+from decimal import Decimal, InvalidOperation
+
+from django.db.models import F, Q
 from rest_framework import serializers
 from rest_framework import mixins, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -68,6 +71,7 @@ class MedicineViewSet(FamilyScopedModelViewSet):
         "dosage",
         "quantity",
         "unit",
+        "low_stock_threshold",
         "expiry_date",
         "storage",
         "notes",
@@ -89,6 +93,11 @@ class MedicineViewSet(FamilyScopedModelViewSet):
             )
         if storage:
             queryset = queryset.filter(storage=storage)
+        if self.request.query_params.get("low_stock") in {"true", "1"}:
+            queryset = queryset.filter(
+                low_stock_threshold__isnull=False,
+                quantity__lte=F("low_stock_threshold"),
+            )
         if ordering in {"expiry_date", "-expiry_date", "trade_name", "-trade_name", "created_at", "-created_at"}:
             queryset = queryset.order_by(ordering)
         return queryset
@@ -105,6 +114,36 @@ class MedicineViewSet(FamilyScopedModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def intake(self, request, pk=None):
+        """Отметить приём: списать amount (по умолчанию 1) с остатка, не уходя в минус."""
+        medicine = self.get_object()
+
+        try:
+            amount = Decimal(str(request.data.get("amount", "1"))).quantize(Decimal("0.01"))
+        except (InvalidOperation, ValueError, TypeError):
+            raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
+        if amount <= 0:
+            raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
+        if medicine.quantity <= 0:
+            raise serializers.ValidationError({"amount": "Лекарство закончилось — остаток уже нулевой."})
+
+        old_quantity = medicine.quantity
+        medicine.quantity = max(Decimal("0"), old_quantity - amount)
+        medicine.save(update_fields=["quantity", "updated_at"])
+
+        create_change_log(
+            family=medicine.family,
+            actor=request.user,
+            action=ChangeLog.Action.INTAKE,
+            instance=medicine,
+            changes={
+                "amount": str(amount),
+                "quantity": {"old": str(old_quantity), "new": str(medicine.quantity)},
+            },
+        )
+        return Response(self.get_serializer(medicine).data)
 
 
 class ShoppingItemViewSet(FamilyScopedModelViewSet):

@@ -101,6 +101,99 @@ class MedicinesApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
+    def test_intake_decrements_quantity_and_logs(self):
+        medicine = Medicine.objects.create(
+            family=self.family,
+            created_by=self.user,
+            **self.medicine_payload(),
+        )
+
+        response = self.client.post(f"/api/medicines/{medicine.id}/intake", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["quantity"], "11.00")
+
+        response = self.client.post(
+            f"/api/medicines/{medicine.id}/intake", {"amount": "2.5"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["quantity"], "8.50")
+
+        log_entry = ChangeLog.objects.filter(action=ChangeLog.Action.INTAKE).first()
+        self.assertIsNotNone(log_entry)
+        self.assertEqual(log_entry.entity_type, "medicine")
+        self.assertEqual(log_entry.changes["amount"], "2.50")
+        self.assertEqual(log_entry.changes["quantity"], {"old": "11.00", "new": "8.50"})
+
+    def test_intake_validates_amount_and_clamps_at_zero(self):
+        medicine = Medicine.objects.create(
+            family=self.family,
+            created_by=self.user,
+            **self.medicine_payload(quantity="2.00"),
+        )
+
+        for bad_amount in ["0", "-1", "abc"]:
+            response = self.client.post(
+                f"/api/medicines/{medicine.id}/intake", {"amount": bad_amount}, format="json"
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, bad_amount)
+
+        response = self.client.post(
+            f"/api/medicines/{medicine.id}/intake", {"amount": "100"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["quantity"], "0.00")
+
+        response = self.client.post(f"/api/medicines/{medicine.id}/intake", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_intake_not_allowed_for_other_family(self):
+        medicine = Medicine.objects.create(
+            family=self.family,
+            created_by=self.user,
+            **self.medicine_payload(),
+        )
+        second_user = User.objects.create_user(username="other", password="strong-password-123")
+        second_family = Family.objects.create(name="Other")
+        Membership.objects.create(user=second_user, family=second_family, role=Membership.Role.ADMIN)
+        login_response = self.client.post(
+            "/api/auth/login",
+            {"username": "other", "password": "strong-password-123"},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login_response.data['access']}")
+
+        response = self.client.post(f"/api/medicines/{medicine.id}/intake", {}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_low_stock_flag_and_filter(self):
+        low_medicine = Medicine.objects.create(
+            family=self.family,
+            created_by=self.user,
+            **self.medicine_payload(quantity="3.00", low_stock_threshold="5.00"),
+        )
+        Medicine.objects.create(
+            family=self.family,
+            created_by=self.user,
+            **self.medicine_payload(trade_name="Парацетамол", quantity="3.00"),
+        )
+
+        list_response = self.client.get("/api/medicines")
+        flags = {item["trade_name"]: item["is_low_stock"] for item in list_response.data}
+        self.assertTrue(flags["Нурофен"])
+        self.assertFalse(flags["Парацетамол"])
+
+        filtered_response = self.client.get("/api/medicines", {"low_stock": "true"})
+        self.assertEqual(len(filtered_response.data), 1)
+        self.assertEqual(filtered_response.data[0]["id"], low_medicine.id)
+
+        patch_response = self.client.patch(
+            f"/api/medicines/{low_medicine.id}",
+            {"quantity": "10.00"},
+            format="json",
+        )
+        self.assertFalse(patch_response.data["is_low_stock"])
+
     def test_shopping_item_crud_writes_changelog(self):
         create_response = self.client.post(
             "/api/shopping-items",
