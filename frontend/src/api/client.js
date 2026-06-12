@@ -81,6 +81,13 @@ async function rawRequest(path, options = {}, accessToken = null) {
     ...options,
     headers
   })
+
+  if (response.status === 413) {
+    throw new ApiError('Файл слишком большой. Уменьшите размер и попробуйте снова.', {
+      status: response.status
+    })
+  }
+
   const data = await parseResponse(response)
 
   if (!response.ok) {

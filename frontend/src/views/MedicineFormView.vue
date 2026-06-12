@@ -12,6 +12,7 @@ import {
   matchFormChoice
 } from '../constants/medicine'
 import { MONTH_OPTIONS, isoDateToMonthYear, monthYearToIsoDate } from '../utils/expiry'
+import { compressImageFile } from '../utils/image'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,15 +90,22 @@ onMounted(async () => {
   }
 })
 
-function onPhotoChange(event) {
+async function onPhotoChange(event) {
   const file = event.target.files?.[0] || null
-  photoFile.value = file
   removePhoto.value = false
 
   if (photoPreview.value) {
     URL.revokeObjectURL(photoPreview.value)
+    photoPreview.value = ''
   }
-  photoPreview.value = file ? URL.createObjectURL(file) : ''
+
+  if (!file) {
+    photoFile.value = null
+    return
+  }
+
+  photoFile.value = await compressImageFile(file)
+  photoPreview.value = URL.createObjectURL(photoFile.value)
 }
 
 function clearPhoto() {
