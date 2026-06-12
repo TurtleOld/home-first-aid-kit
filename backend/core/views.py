@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -47,6 +48,23 @@ def health(request):
     healthy = all(value == "ok" for value in checks.values())
     payload = {"status": "ok" if healthy else "degraded", "checks": checks}
     return Response(payload, status=200 if healthy else 503)
+
+
+class DebugOnlyMixin:
+    """Раскрывает OpenAPI-схему и Swagger UI только при DEBUG=True."""
+
+    def get(self, request, *args, **kwargs):
+        if not settings.DEBUG:
+            raise Http404
+        return super().get(request, *args, **kwargs)
+
+
+class SchemaView(DebugOnlyMixin, SpectacularAPIView):
+    pass
+
+
+class SchemaSwaggerView(DebugOnlyMixin, SpectacularSwaggerView):
+    pass
 
 
 PROTECTED_MEDIA_PREFIXES = ("medicine_photos", "medicine_instructions")

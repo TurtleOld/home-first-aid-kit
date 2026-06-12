@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
     "accounts",
     "core",
     "medicines",
@@ -154,6 +155,14 @@ REST_FRAMEWORK = {
         "drug_lookup": "20/day",
         "auth": "5/min",
     },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Home First-Aid Kit API",
+    "DESCRIPTION": "API домашней аптечки: лекарства, семьи, приглашения, уведомления.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {
