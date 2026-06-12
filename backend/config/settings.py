@@ -6,8 +6,7 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
-from core.utils import caches_config
-
+from core.utils import caches_config, default_renderer_classes
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
@@ -145,10 +144,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
-    ],
+    "DEFAULT_RENDERER_CLASSES": default_renderer_classes(DEBUG),
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
         "rest_framework.parsers.FormParser",

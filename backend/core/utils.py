@@ -11,6 +11,13 @@ def compute_expiry_status(expiry_date, today):
     return "ok"
 
 
+def default_renderer_classes(debug):
+    classes = ["rest_framework.renderers.JSONRenderer"]
+    if debug:
+        classes.append("rest_framework.renderers.BrowsableAPIRenderer")
+    return classes
+
+
 def caches_config(redis_url):
     """Cache backend config: Redis when REDIS_URL is set, LocMemCache otherwise.
 
