@@ -1,14 +1,16 @@
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.utils import timezone
+from pywebpush import WebPushException
+from structlog.testing import capture_logs
 
 from accounts.models import Family, Membership
 from medicines.models import Medicine
 from notifications.models import PushSubscription
-from notifications.tasks import build_digest, send_expiry_notifications
+from notifications.tasks import build_digest, send_expiry_notifications, send_push
 
 User = get_user_model()
 
@@ -103,6 +105,47 @@ class SendExpiryNotificationsTests(TestCase):
             send_expiry_notifications()
 
         mock_webpush.assert_not_called()
+
+
+@override_settings(VAPID_PRIVATE_KEY="test-private-key", VAPID_CLAIMS_EMAIL="admin@example.com")
+class SendPushTests(TestCase):
+    def setUp(self):
+        family = Family.objects.create(name="Family")
+        user = User.objects.create_user(username="member", password="strong-password-123")
+        Membership.objects.create(user=user, family=family, role=Membership.Role.ADMIN)
+        self.subscription = PushSubscription.objects.create(
+            user=user,
+            endpoint="https://push.example.com/abc",
+            p256dh="p256dh-key",
+            auth="auth-secret",
+        )
+
+    @patch("notifications.tasks.webpush")
+    def test_logs_warning_on_unexpected_failure(self, mock_webpush):
+        error = WebPushException("server error")
+        error.response = Mock(status_code=500)
+        mock_webpush.side_effect = error
+
+        with capture_logs() as captured:
+            send_push(self.subscription, {"title": "t", "body": "b"})
+
+        warnings = [entry for entry in captured if entry["event"] == "push_send_failed"]
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["status_code"], 500)
+        self.assertEqual(warnings[0]["subscription_id"], self.subscription.id)
+        self.assertTrue(PushSubscription.objects.filter(id=self.subscription.id).exists())
+
+    @patch("notifications.tasks.webpush")
+    def test_deletes_subscription_on_410_without_logging(self, mock_webpush):
+        error = WebPushException("gone")
+        error.response = Mock(status_code=410)
+        mock_webpush.side_effect = error
+
+        with capture_logs() as captured:
+            send_push(self.subscription, {"title": "t", "body": "b"})
+
+        self.assertFalse(any(entry["event"] == "push_send_failed" for entry in captured))
+        self.assertFalse(PushSubscription.objects.filter(id=self.subscription.id).exists())
 
 
 @override_settings(VAPID_PRIVATE_KEY="test-private-key", VAPID_CLAIMS_EMAIL="admin@example.com")

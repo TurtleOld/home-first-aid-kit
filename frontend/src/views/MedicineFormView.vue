@@ -1,13 +1,12 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api/client'
 import DrugLookupPanel from '../components/DrugLookupPanel.vue'
-import MediaImage from '../components/MediaImage.vue'
+import PhotoUploadField from '../components/PhotoUploadField.vue'
 import ReferenceDataNote from '../components/ReferenceDataNote.vue'
 import { FORM_OPTIONS, STORAGE_OPTIONS, UNIT_OPTIONS, matchFormChoice } from '../constants/medicine'
 import { MONTH_OPTIONS, isoDateToMonthYear, monthYearToIsoDate } from '../utils/expiry'
-import { compressImageFile } from '../utils/image'
 
 const route = useRoute()
 const router = useRouter()
@@ -33,7 +32,6 @@ const sourceUrl = ref('')
 const referenceData = ref(null)
 
 const photoFile = ref(null)
-const photoPreview = ref('')
 const existingPhotoUrl = ref('')
 const removePhoto = ref(false)
 
@@ -82,42 +80,6 @@ onMounted(async () => {
     error.value = requestError.message || 'Не удалось загрузить лекарство'
   } finally {
     isLoading.value = false
-  }
-})
-
-async function onPhotoChange(event) {
-  const file = event.target.files?.[0] || null
-  removePhoto.value = false
-
-  if (photoPreview.value) {
-    URL.revokeObjectURL(photoPreview.value)
-    photoPreview.value = ''
-  }
-
-  if (!file) {
-    photoFile.value = null
-    return
-  }
-
-  photoFile.value = await compressImageFile(file)
-  photoPreview.value = URL.createObjectURL(photoFile.value)
-}
-
-function clearPhoto() {
-  photoFile.value = null
-  if (photoPreview.value) {
-    URL.revokeObjectURL(photoPreview.value)
-    photoPreview.value = ''
-  }
-  if (existingPhotoUrl.value) {
-    removePhoto.value = true
-    existingPhotoUrl.value = ''
-  }
-}
-
-onBeforeUnmount(() => {
-  if (photoPreview.value) {
-    URL.revokeObjectURL(photoPreview.value)
   }
 })
 
@@ -388,31 +350,11 @@ async function removeMedicine() {
 
         <fieldset>
           <legend>Фото упаковки</legend>
-          <div class="photo-field">
-            <img
-              v-if="photoPreview"
-              class="photo-preview"
-              :src="photoPreview"
-              alt="Фото лекарства"
-            />
-            <MediaImage
-              v-else-if="existingPhotoUrl"
-              class="photo-preview"
-              :src="existingPhotoUrl"
-              alt="Фото лекарства"
-            />
-            <div class="photo-controls">
-              <input type="file" accept="image/*" @change="onPhotoChange" />
-              <button
-                v-if="photoPreview || existingPhotoUrl"
-                class="text-button"
-                type="button"
-                @click="clearPhoto"
-              >
-                Убрать фото
-              </button>
-            </div>
-          </div>
+          <PhotoUploadField
+            v-model:file="photoFile"
+            v-model:removed="removePhoto"
+            :existing-url="existingPhotoUrl"
+          />
         </fieldset>
 
         <fieldset>
