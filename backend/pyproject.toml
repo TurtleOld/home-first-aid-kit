@@ -19,6 +19,8 @@ dependencies = [
     "celery>=5.4,<6.0",
     "pywebpush>=2.0,<3.0",
     "drf-spectacular>=0.29.0",
+    "structlog>=26.1.0",
+    "django-structlog>=10.1.0",
 ]
 
 [tool.uv]
