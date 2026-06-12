@@ -6,21 +6,30 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Family, Invitation
-from .permissions import IsFamilyAdmin
+from .models import Family, Invitation, Membership
+from .permissions import IsFamilyAdmin, IsFamilyMember
 from .selectors import get_current_membership
 from .serializers import (
     AcceptInvitationSerializer,
+    AdminPasswordResetSerializer,
+    FamilyMemberSerializer,
     InvitationSerializer,
     MeSerializer,
+    PasswordChangeSerializer,
     PublicInvitationSerializer,
     RegisterSerializer,
     serialize_me,
     tokens_for_user,
 )
+
+
+def revoke_all_tokens(user):
+    for token in OutstandingToken.objects.filter(user=user):
+        BlacklistedToken.objects.get_or_create(token=token)
 
 
 def registration_is_open():
@@ -128,6 +137,50 @@ class InvitationRevokeView(APIView):
         )
         invitation.is_active = False
         invitation.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        revoke_all_tokens(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FamilyMembersView(generics.ListAPIView):
+    serializer_class = FamilyMemberSerializer
+    permission_classes = [IsAuthenticated, IsFamilyMember]
+
+    def get_queryset(self):
+        membership = get_current_membership(self.request.user)
+        return (
+            Membership.objects.filter(family=membership.family)
+            .select_related("user")
+            .order_by("joined_at")
+        )
+
+
+class MemberPasswordResetView(APIView):
+    permission_classes = [IsAuthenticated, IsFamilyAdmin]
+
+    def post(self, request, user_id):
+        membership = get_current_membership(request.user)
+        target = get_object_or_404(
+            Membership.objects.select_related("user"),
+            family=membership.family,
+            user_id=user_id,
+        )
+        serializer = AdminPasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target.user.set_password(serializer.validated_data["new_password"])
+        target.user.save(update_fields=["password"])
+        revoke_all_tokens(target.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

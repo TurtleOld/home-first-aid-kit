@@ -195,6 +195,114 @@ class AuthInvitationTests(TestCase):
         forbidden_response = self.client.post("/api/invitations", {}, format="json")
         self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_password_change_success(self):
+        register_response = self.register_admin()
+        access = register_response.data["access"]
+        refresh = register_response.data["refresh"]
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        response = self.client.post(
+            "/api/auth/password",
+            {"current_password": "strong-password-123", "new_password": "even-stronger-456"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        old_refresh_response = self.client.post(
+            "/api/auth/refresh", {"refresh": refresh}, format="json"
+        )
+        self.assertEqual(old_refresh_response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        login_response = self.client.post(
+            "/api/auth/login",
+            {"username": "admin", "password": "even-stronger-456"},
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+    def test_password_change_requires_correct_current_password(self):
+        register_response = self.register_admin()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_response.data['access']}")
+
+        response = self.client.post(
+            "/api/auth/password",
+            {"current_password": "wrong-password", "new_password": "even-stronger-456"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_family_admin_lists_members_and_resets_member_password(self):
+        register_response = self.register_admin()
+        admin_access = register_response.data["access"]
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_access}")
+        invite_response = self.client.post("/api/invitations", {}, format="json")
+        token = invite_response.data["token"]
+
+        self.client.credentials()
+        accept_response = self.client.post(
+            f"/api/invitations/{token}/accept",
+            {"username": "member", "password": "strong-password-123"},
+            format="json",
+        )
+        member_id = accept_response.data["user"]["id"]
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_access}")
+        members_response = self.client.get("/api/members")
+        self.assertEqual(members_response.status_code, status.HTTP_200_OK, members_response.data)
+        usernames = {member["user"]["username"] for member in members_response.data}
+        self.assertEqual(usernames, {"admin", "member"})
+
+        reset_response = self.client.post(
+            f"/api/members/{member_id}/password",
+            {"new_password": "brand-new-password-789"},
+            format="json",
+        )
+        self.assertEqual(reset_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        login_response = self.client.post(
+            "/api/auth/login",
+            {"username": "member", "password": "brand-new-password-789"},
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+    def test_member_cannot_list_members_endpoint_used_by_non_admin(self):
+        register_response = self.register_admin()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_response.data['access']}")
+        invite_response = self.client.post("/api/invitations", {}, format="json")
+        token = invite_response.data["token"]
+
+        self.client.credentials()
+        accept_response = self.client.post(
+            f"/api/invitations/{token}/accept",
+            {"username": "member", "password": "strong-password-123"},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {accept_response.data['access']}")
+
+        members_response = self.client.get("/api/members")
+        self.assertEqual(members_response.status_code, status.HTTP_200_OK)
+
+        reset_response = self.client.post(
+            "/api/members/1/password",
+            {"new_password": "brand-new-password-789"},
+            format="json",
+        )
+        self.assertEqual(reset_response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_cannot_reset_password_for_other_family_member(self):
+        first = self.register_admin(username="first", family_name="First")
+        second_user, _, _ = self.create_family_admin("second", "Second")
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {first.data['access']}")
+        response = self.client.post(
+            f"/api/members/{second_user.id}/password",
+            {"new_password": "brand-new-password-789"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_other_family_member_cannot_revoke_invitation(self):
         first = self.register_admin(username="first", family_name="First")
         _, _, second_access = self.create_family_admin("second", "Second")

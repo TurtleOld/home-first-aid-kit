@@ -54,6 +54,9 @@ async function submit() {
         <input v-model="form.password" type="password" autocomplete="current-password" required />
       </label>
 
+      <p v-if="route.query.passwordChanged" class="form-notice" role="status">
+        Пароль изменён. Войдите с новым паролем.
+      </p>
       <p v-if="error" class="form-error">{{ error }}</p>
 
       <button class="primary-button" type="submit" :disabled="auth.isLoading">

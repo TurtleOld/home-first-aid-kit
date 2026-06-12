@@ -1,7 +1,49 @@
 <script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { api } from '../api/client'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
+const router = useRouter()
+
+const form = reactive({
+  current_password: '',
+  new_password: '',
+  new_password_repeat: ''
+})
+
+const isSaving = ref(false)
+const error = ref('')
+const notice = ref('')
+
+async function changePassword() {
+  error.value = ''
+  notice.value = ''
+
+  if (form.new_password.length < 8) {
+    error.value = 'Новый пароль должен содержать не менее 8 символов.'
+    return
+  }
+  if (form.new_password !== form.new_password_repeat) {
+    error.value = 'Пароли не совпадают.'
+    return
+  }
+
+  isSaving.value = true
+  try {
+    await api.post('/auth/password', {
+      current_password: form.current_password,
+      new_password: form.new_password
+    })
+    auth.logout()
+    router.push({ name: 'login', query: { passwordChanged: '1' } })
+  } catch (requestError) {
+    error.value = requestError.message || 'Не удалось изменить пароль'
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -31,5 +73,38 @@ const auth = useAuthStore()
         <dd>{{ auth.role === 'admin' ? 'Администратор' : 'Участник' }}</dd>
       </div>
     </dl>
+
+    <h2>Смена пароля</h2>
+    <form class="medicine-form" @submit.prevent="changePassword">
+      <div class="form-grid">
+        <label>
+          Текущий пароль
+          <input v-model="form.current_password" type="password" autocomplete="current-password" required />
+        </label>
+        <label>
+          Новый пароль
+          <input v-model="form.new_password" type="password" autocomplete="new-password" required minlength="8" />
+        </label>
+        <label>
+          Повторите новый пароль
+          <input
+            v-model="form.new_password_repeat"
+            type="password"
+            autocomplete="new-password"
+            required
+            minlength="8"
+          />
+        </label>
+      </div>
+
+      <p v-if="error" class="form-error">{{ error }}</p>
+      <p v-if="notice" class="form-notice" role="status">{{ notice }}</p>
+
+      <div class="form-actions">
+        <button class="primary-button inline-button" type="submit" :disabled="isSaving">
+          {{ isSaving ? 'Сохраняем...' : 'Сменить пароль' }}
+        </button>
+      </div>
+    </form>
   </section>
 </template>

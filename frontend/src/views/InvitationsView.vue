@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
 import { formatDateTime } from '../utils/expiry'
 
@@ -8,6 +8,10 @@ const isLoading = ref(true)
 const isCreating = ref(false)
 const error = ref('')
 const copiedId = ref(null)
+
+const members = ref([])
+const membersError = ref('')
+const resetState = reactive({})
 
 async function loadInvitations() {
   isLoading.value = true
@@ -18,6 +22,52 @@ async function loadInvitations() {
     error.value = requestError.message || 'Не удалось загрузить приглашения'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function loadMembers() {
+  membersError.value = ''
+  try {
+    members.value = await api.get('/members')
+  } catch (requestError) {
+    membersError.value = requestError.message || 'Не удалось загрузить список участников'
+  }
+}
+
+function resetFormFor(userId) {
+  if (!resetState[userId]) {
+    resetState[userId] = { open: false, password: '', error: '', notice: '', isSaving: false }
+  }
+  return resetState[userId]
+}
+
+function toggleResetForm(userId) {
+  const state = resetFormFor(userId)
+  state.open = !state.open
+  state.password = ''
+  state.error = ''
+  state.notice = ''
+}
+
+async function resetMemberPassword(userId) {
+  const state = resetFormFor(userId)
+  state.error = ''
+  state.notice = ''
+
+  if (state.password.length < 8) {
+    state.error = 'Пароль должен содержать не менее 8 символов.'
+    return
+  }
+
+  state.isSaving = true
+  try {
+    await api.post(`/members/${userId}/password`, { new_password: state.password })
+    state.notice = 'Пароль обновлён.'
+    state.password = ''
+  } catch (requestError) {
+    state.error = requestError.message || 'Не удалось сменить пароль'
+  } finally {
+    state.isSaving = false
   }
 }
 
@@ -68,7 +118,10 @@ async function revoke(invitation) {
   }
 }
 
-onMounted(loadInvitations)
+onMounted(() => {
+  loadInvitations()
+  loadMembers()
+})
 </script>
 
 <template>
@@ -115,5 +168,52 @@ onMounted(loadInvitations)
       <h2>Активных приглашений нет</h2>
       <p>Нажмите «Новая ссылка», чтобы пригласить члена семьи.</p>
     </div>
+
+    <h2>Участники семьи</h2>
+    <p v-if="membersError" class="form-error">{{ membersError }}</p>
+
+    <ul v-if="members.length" class="invitation-list">
+      <li v-for="member in members" :key="member.user.id" class="invitation-card">
+        <div class="invitation-info">
+          <span>{{ member.user.username }}</span>
+          <span class="invitation-meta muted">
+            {{ member.role === 'admin' ? 'Администратор' : 'Участник' }}
+          </span>
+        </div>
+        <div class="invitation-actions">
+          <button class="text-button" type="button" @click="toggleResetForm(member.user.id)">
+            Сбросить пароль
+          </button>
+        </div>
+
+        <form
+          v-if="resetState[member.user.id]?.open"
+          class="medicine-form"
+          @submit.prevent="resetMemberPassword(member.user.id)"
+        >
+          <label>
+            Новый пароль
+            <input
+              v-model="resetState[member.user.id].password"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              required
+            />
+          </label>
+          <p v-if="resetState[member.user.id].error" class="form-error">
+            {{ resetState[member.user.id].error }}
+          </p>
+          <p v-if="resetState[member.user.id].notice" class="form-notice" role="status">
+            {{ resetState[member.user.id].notice }}
+          </p>
+          <div class="form-actions">
+            <button class="primary-button inline-button" type="submit" :disabled="resetState[member.user.id].isSaving">
+              {{ resetState[member.user.id].isSaving ? 'Сохраняем...' : 'Сохранить новый пароль' }}
+            </button>
+          </div>
+        </form>
+      </li>
+    </ul>
   </section>
 </template>

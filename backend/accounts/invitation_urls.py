@@ -1,10 +1,12 @@
 from django.urls import path
 
 from .views import (
+    FamilyMembersView,
     InvitationAcceptView,
     InvitationDetailView,
     InvitationListCreateView,
     InvitationRevokeView,
+    MemberPasswordResetView,
 )
 
 urlpatterns = [
@@ -16,4 +18,10 @@ urlpatterns = [
         name="invitation-accept",
     ),
     path("invitations/<int:pk>", InvitationRevokeView.as_view(), name="invitation-revoke"),
+    path("members", FamilyMembersView.as_view(), name="member-list"),
+    path(
+        "members/<int:user_id>/password",
+        MemberPasswordResetView.as_view(),
+        name="member-password-reset",
+    ),
 ]
