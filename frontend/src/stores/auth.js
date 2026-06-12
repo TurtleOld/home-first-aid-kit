@@ -153,6 +153,9 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
+      const refresh = this.refreshToken
+      const access = this.accessToken
+
       this.accessToken = null
       this.refreshToken = null
       this.user = null
@@ -160,6 +163,20 @@ export const useAuthStore = defineStore('auth', {
       this.role = null
       localStorage.removeItem(ACCESS_TOKEN_KEY)
       localStorage.removeItem(REFRESH_TOKEN_KEY)
+
+      if (refresh && access) {
+        api
+          .rawRequest(
+            '/auth/logout',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh })
+            },
+            access
+          )
+          .catch(() => {})
+      }
     }
   }
 })

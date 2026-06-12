@@ -1,9 +1,11 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import generics, status
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Family, Invitation
@@ -123,6 +125,22 @@ class InvitationRevokeView(APIView):
         )
         invitation.is_active = False
         invitation.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        refresh = request.data.get("refresh")
+        if not refresh:
+            raise serializers.ValidationError({"refresh": "Обязательное поле."})
+
+        try:
+            RefreshToken(refresh).blacklist()
+        except TokenError as exc:
+            raise serializers.ValidationError({"refresh": str(exc)})
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -63,6 +63,30 @@ class AuthInvitationTests(TestCase):
         self.assertFalse(User.objects.filter(username="second").exists())
         self.assertEqual(Family.objects.count(), 1)
 
+    def test_logout_blacklists_refresh_token(self):
+        register_response = self.register_admin()
+        access = register_response.data["access"]
+        refresh = register_response.data["refresh"]
+
+        logout_response = self.client.post(
+            "/api/auth/logout",
+            {"refresh": refresh},
+            format="json",
+            HTTP_AUTHORIZATION=f"Bearer {access}",
+        )
+        self.assertEqual(logout_response.status_code, status.HTTP_204_NO_CONTENT)
+
+        refresh_response = self.client.post(
+            "/api/auth/refresh",
+            {"refresh": refresh},
+            format="json",
+        )
+        self.assertEqual(refresh_response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_requires_authentication(self):
+        response = self.client.post("/api/auth/logout", {"refresh": "irrelevant"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_admin_registers_invites_and_member_accepts(self):
         register_response = self.register_admin()
         admin_access = register_response.data["access"]
