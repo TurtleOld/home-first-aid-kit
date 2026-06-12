@@ -6,6 +6,8 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from core.utils import caches_config
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
@@ -163,9 +165,5 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "home-first-aid-kit",
-    }
-}
+REDIS_URL = os.getenv("REDIS_URL", "")
+CACHES = caches_config(REDIS_URL)

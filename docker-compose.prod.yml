@@ -13,6 +13,16 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     image: ${BACKEND_IMAGE:-ghcr.io/turtleold/home-first-aid-kit:latest}
     env_file:
@@ -22,6 +32,7 @@ services:
       DEBUG: "false"
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-firstaid}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-firstaid}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://localhost}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://localhost}
@@ -35,6 +46,8 @@ services:
       - nginx_config:/app/runtime/nginx
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "test -f /app/runtime/frontend/index.html -a -f /app/runtime/nginx/default.conf"]
@@ -61,6 +74,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
   backend_media:
   backend_static:
   frontend_dist:
