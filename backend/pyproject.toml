@@ -25,6 +25,7 @@ package = false
 
 [dependency-groups]
 dev = [
+    "coverage>=7.14.1",
     "ruff>=0.11,<0.12",
 ]
 
@@ -38,3 +39,10 @@ select = ["E", "F", "I", "W", "B", "DJ"]
 [tool.ruff.lint.per-file-ignores]
 "*/migrations/*.py" = ["E501"]
 "medicines/reference_parser/parser.py" = ["E501"]
+
+[tool.coverage.run]
+source = ["accounts", "core", "medicines", "notifications"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+skip_empty = true
