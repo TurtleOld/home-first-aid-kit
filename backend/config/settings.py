@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -150,6 +151,10 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "drug_lookup": "20/day",
     },
+}
+
+SIMPLE_JWT = {
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
 
 CACHES = {
