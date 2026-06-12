@@ -6,6 +6,11 @@ from django.utils import timezone
 
 from accounts.models import Family
 from core.utils import compute_expiry_status
+from core.validators import (
+    validate_instruction_file_content,
+    validate_instruction_file_extension,
+    validate_instruction_file_size,
+)
 
 
 class Medicine(models.Model):
@@ -49,7 +54,16 @@ class Medicine(models.Model):
     storage = models.CharField(max_length=20, choices=Storage.choices, default=Storage.KIT)
     notes = models.TextField(blank=True)
     photo = models.ImageField(upload_to="medicine_photos/", null=True, blank=True)
-    instruction_file = models.FileField(upload_to="medicine_instructions/", null=True, blank=True)
+    instruction_file = models.FileField(
+        upload_to="medicine_instructions/",
+        null=True,
+        blank=True,
+        validators=[
+            validate_instruction_file_extension,
+            validate_instruction_file_size,
+            validate_instruction_file_content,
+        ],
+    )
     instruction_url = models.URLField(blank=True)
     instruction_note = models.TextField(blank=True)
     source_url = models.URLField(blank=True)

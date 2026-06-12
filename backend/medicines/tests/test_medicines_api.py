@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework import status
@@ -214,3 +215,44 @@ class MedicinesApiTests(TestCase):
 
         self.assertFalse(ShoppingItem.objects.exists())
         self.assertEqual(ChangeLog.objects.filter(entity_type="shoppingitem").count(), 3)
+
+    def test_instruction_file_rejects_disguised_html(self):
+        malicious_file = SimpleUploadedFile(
+            "instruction.pdf",
+            b"<script>alert(1)</script>",
+            content_type="application/pdf",
+        )
+        response = self.client.post(
+            "/api/medicines",
+            self.medicine_payload(instruction_file=malicious_file),
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertIn("instruction_file", response.data)
+
+    def test_instruction_file_rejects_disallowed_extension(self):
+        malicious_file = SimpleUploadedFile(
+            "instruction.svg",
+            b"<svg onload=alert(1)></svg>",
+            content_type="image/svg+xml",
+        )
+        response = self.client.post(
+            "/api/medicines",
+            self.medicine_payload(instruction_file=malicious_file),
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertIn("instruction_file", response.data)
+
+    def test_instruction_file_accepts_valid_pdf(self):
+        valid_file = SimpleUploadedFile(
+            "instruction.pdf",
+            b"%PDF-1.4 minimal pdf content",
+            content_type="application/pdf",
+        )
+        response = self.client.post(
+            "/api/medicines",
+            self.medicine_payload(instruction_file=valid_file),
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
