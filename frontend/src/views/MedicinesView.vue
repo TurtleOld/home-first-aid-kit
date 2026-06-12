@@ -25,10 +25,20 @@ const filters = reactive({
   lowStock: false
 })
 
+const summary = reactive({
+  expired: 0,
+  expiringSoon: 0,
+  lowStock: 0
+})
+
 let searchDebounce = null
 
 const hasFilters = computed(() =>
   Boolean(filters.search || filters.status || filters.storage || filters.lowStock)
+)
+
+const hasAttention = computed(
+  () => summary.expired > 0 || summary.expiringSoon > 0 || summary.lowStock > 0
 )
 
 async function loadMedicines() {
@@ -48,6 +58,19 @@ async function loadMedicines() {
     error.value = requestError.message || 'Не удалось загрузить аптечку'
   } finally {
     isLoading.value = false
+  }
+}
+
+// Сводка считается по всей аптечке, без учёта текущих фильтров,
+// чтобы показывать «требует внимания» независимо от того, что сейчас отфильтровано.
+async function loadSummary() {
+  try {
+    const all = await api.get('/medicines')
+    summary.expired = all.filter((item) => item.status === 'expired').length
+    summary.expiringSoon = all.filter((item) => item.status === 'expiring_soon').length
+    summary.lowStock = all.filter((item) => item.is_low_stock).length
+  } catch {
+    // Сводка необязательна — список лекарств покажет ошибку сам.
   }
 }
 
@@ -71,6 +94,16 @@ function toggleLowStockFilter() {
   loadMedicines()
 }
 
+function focusStatus(value) {
+  filters.lowStock = false
+  toggleFilter('status', value)
+}
+
+function focusLowStock() {
+  filters.status = ''
+  toggleLowStockFilter()
+}
+
 function resetFilters() {
   filters.search = ''
   filters.status = ''
@@ -92,6 +125,7 @@ async function recordIntake(medicine, amount) {
       medicines.value[index] = updated
     }
     notice.value = `«${medicine.trade_name}»: списано ${formatQuantity(amount)} ${unitLabel(medicine.unit)}, осталось ${formatQuantity(updated.quantity)}`
+    loadSummary()
   } catch (requestError) {
     error.value = requestError.message || 'Не удалось отметить приём'
   }
@@ -139,12 +173,16 @@ async function removeMedicine(medicine) {
   try {
     await api.delete(`/medicines/${medicine.id}`)
     medicines.value = medicines.value.filter((item) => item.id !== medicine.id)
+    loadSummary()
   } catch (requestError) {
     error.value = requestError.message || 'Не удалось удалить лекарство'
   }
 }
 
-onMounted(loadMedicines)
+onMounted(() => {
+  loadMedicines()
+  loadSummary()
+})
 </script>
 
 <template>
@@ -157,6 +195,42 @@ onMounted(loadMedicines)
       <RouterLink class="primary-button inline-button" to="/medicines/new">
         + Добавить
       </RouterLink>
+    </div>
+
+    <div v-if="!isLoading" class="attention-summary" role="group" aria-label="Требует внимания">
+      <template v-if="hasAttention">
+        <button
+          v-if="summary.expired"
+          type="button"
+          class="attention-card attention-card-danger"
+          :class="{ 'attention-active': filters.status === 'expired' }"
+          @click="focusStatus('expired')"
+        >
+          <span class="attention-count">{{ summary.expired }}</span>
+          <span class="attention-label">просрочено</span>
+        </button>
+        <button
+          v-if="summary.expiringSoon"
+          type="button"
+          class="attention-card attention-card-warning"
+          :class="{ 'attention-active': filters.status === 'expiring_soon' }"
+          @click="focusStatus('expiring_soon')"
+        >
+          <span class="attention-count">{{ summary.expiringSoon }}</span>
+          <span class="attention-label">истекает</span>
+        </button>
+        <button
+          v-if="summary.lowStock"
+          type="button"
+          class="attention-card attention-card-stock"
+          :class="{ 'attention-active': filters.lowStock }"
+          @click="focusLowStock"
+        >
+          <span class="attention-count">{{ summary.lowStock }}</span>
+          <span class="attention-label">заканчивается</span>
+        </button>
+      </template>
+      <p v-else class="attention-ok">Всё в порядке: ничего просроченного и заканчивающегося нет.</p>
     </div>
 
     <div class="filter-bar">

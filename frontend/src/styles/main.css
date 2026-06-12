@@ -429,6 +429,70 @@ h2 {
   background: var(--danger);
 }
 
+/* --- Сводка «требует внимания» --- */
+
+.attention-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.attention-card {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-weight: 700;
+}
+
+.attention-count {
+  font-size: 1.3rem;
+}
+
+.attention-label {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.attention-card-danger {
+  border-color: var(--danger);
+}
+
+.attention-card-danger .attention-count {
+  color: var(--danger);
+}
+
+.attention-card-warning {
+  border-color: var(--warning);
+}
+
+.attention-card-warning .attention-count {
+  color: var(--warning);
+}
+
+.attention-card-stock {
+  border-color: var(--warning);
+}
+
+.attention-card-stock .attention-count {
+  color: var(--warning);
+}
+
+.attention-active {
+  background: var(--surface-muted, var(--surface));
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.attention-ok {
+  color: var(--ok);
+  font-weight: 700;
+  margin: 0;
+}
+
 /* --- Фильтры аптечки --- */
 
 .filter-bar {
