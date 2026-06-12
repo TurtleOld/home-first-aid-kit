@@ -4,7 +4,6 @@ from django.test import SimpleTestCase
 
 from medicines.reference_parser.parser import parse_detail_html, parse_variants_html
 
-
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 

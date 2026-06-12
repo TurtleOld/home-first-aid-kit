@@ -5,7 +5,6 @@ from rest_framework.test import APIClient
 
 from notifications.models import PushSubscription
 
-
 User = get_user_model()
 
 

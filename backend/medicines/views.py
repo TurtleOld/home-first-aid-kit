@@ -2,8 +2,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 from django.db.models import F, Q
-from rest_framework import serializers
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -99,7 +98,15 @@ class MedicineViewSet(FamilyScopedModelViewSet):
                 low_stock_threshold__isnull=False,
                 quantity__lte=F("low_stock_threshold"),
             )
-        if ordering in {"expiry_date", "-expiry_date", "trade_name", "-trade_name", "created_at", "-created_at"}:
+        allowed_orderings = {
+            "expiry_date",
+            "-expiry_date",
+            "trade_name",
+            "-trade_name",
+            "created_at",
+            "-created_at",
+        }
+        if ordering in allowed_orderings:
             queryset = queryset.order_by(ordering)
         return queryset
 
@@ -123,8 +130,8 @@ class MedicineViewSet(FamilyScopedModelViewSet):
 
         try:
             amount = Decimal(str(request.data.get("amount", "1"))).quantize(Decimal("0.01"))
-        except (InvalidOperation, ValueError, TypeError):
-            raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
+        except (InvalidOperation, ValueError, TypeError) as exc:
+            raise serializers.ValidationError({"amount": "Укажите число больше нуля."}) from exc
         if amount <= 0:
             raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
 

@@ -1,5 +1,5 @@
-from urllib.parse import urlparse
 from hashlib import sha256
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
@@ -12,7 +12,6 @@ from rest_framework.views import APIView
 from accounts.permissions import IsFamilyMember
 
 from .parser import ReferenceParserError, list_variants, parse_variant
-
 
 CACHE_TTL_SECONDS = 60 * 60 * 24
 
