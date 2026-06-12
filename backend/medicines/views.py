@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
+from django.db import transaction
 from django.db.models import F, Q
 from rest_framework import serializers
 from rest_framework import mixins, viewsets
@@ -126,23 +127,27 @@ class MedicineViewSet(FamilyScopedModelViewSet):
             raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
         if amount <= 0:
             raise serializers.ValidationError({"amount": "Укажите число больше нуля."})
-        if medicine.quantity <= 0:
-            raise serializers.ValidationError({"amount": "Лекарство закончилось — остаток уже нулевой."})
 
-        old_quantity = medicine.quantity
-        medicine.quantity = max(Decimal("0"), old_quantity - amount)
-        medicine.save(update_fields=["quantity", "updated_at"])
+        with transaction.atomic():
+            medicine = Medicine.objects.select_for_update().get(pk=medicine.pk)
 
-        create_change_log(
-            family=medicine.family,
-            actor=request.user,
-            action=ChangeLog.Action.INTAKE,
-            instance=medicine,
-            changes={
-                "amount": str(amount),
-                "quantity": {"old": str(old_quantity), "new": str(medicine.quantity)},
-            },
-        )
+            if medicine.quantity <= 0:
+                raise serializers.ValidationError({"amount": "Лекарство закончилось — остаток уже нулевой."})
+
+            old_quantity = medicine.quantity
+            medicine.quantity = max(Decimal("0"), old_quantity - amount)
+            medicine.save(update_fields=["quantity", "updated_at"])
+
+            create_change_log(
+                family=medicine.family,
+                actor=request.user,
+                action=ChangeLog.Action.INTAKE,
+                instance=medicine,
+                changes={
+                    "amount": str(amount),
+                    "quantity": {"old": str(old_quantity), "new": str(medicine.quantity)},
+                },
+            )
         return Response(self.get_serializer(medicine).data)
 
 
