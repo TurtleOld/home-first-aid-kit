@@ -1,7 +1,9 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
 import { formatDateTime } from '../utils/expiry'
+
+const UNDO_TIMEOUT = 5000
 
 const items = ref([])
 const isLoading = ref(true)
@@ -10,8 +12,14 @@ const error = ref('')
 const newItem = reactive({ name: '', note: '' })
 const isAdding = ref(false)
 
-const pendingItems = computed(() => items.value.filter((item) => !item.is_bought))
-const boughtItems = computed(() => items.value.filter((item) => item.is_bought))
+const pendingDeletions = ref([])
+
+const visibleItems = computed(() => {
+  const hiddenIds = new Set(pendingDeletions.value.map((entry) => entry.item.id))
+  return items.value.filter((item) => !hiddenIds.has(item.id))
+})
+const pendingItems = computed(() => visibleItems.value.filter((item) => !item.is_bought))
+const boughtItems = computed(() => visibleItems.value.filter((item) => item.is_bought))
 
 async function loadItems() {
   isLoading.value = true
@@ -52,17 +60,44 @@ async function toggleBought(item) {
   }
 }
 
-async function removeItem(item) {
+function removeItem(item) {
   error.value = ''
+
+  const timeoutId = setTimeout(() => confirmRemoval(item.id), UNDO_TIMEOUT)
+  pendingDeletions.value.push({ item, timeoutId })
+}
+
+async function confirmRemoval(itemId) {
+  const entry = pendingDeletions.value.find((current) => current.item.id === itemId)
+  pendingDeletions.value = pendingDeletions.value.filter((current) => current.item.id !== itemId)
+
   try {
-    await api.delete(`/shopping-items/${item.id}`)
-    items.value = items.value.filter((current) => current.id !== item.id)
+    await api.delete(`/shopping-items/${itemId}`)
+    items.value = items.value.filter((current) => current.id !== itemId)
   } catch (requestError) {
     error.value = requestError.message || 'Не удалось удалить позицию'
+    if (entry) {
+      items.value = items.value.some((current) => current.id === itemId)
+        ? items.value
+        : [...items.value, entry.item]
+    }
   }
 }
 
+function undoRemoval(itemId) {
+  const entry = pendingDeletions.value.find((current) => current.item.id === itemId)
+  if (!entry) {
+    return
+  }
+  clearTimeout(entry.timeoutId)
+  pendingDeletions.value = pendingDeletions.value.filter((current) => current.item.id !== itemId)
+}
+
 onMounted(loadItems)
+
+onBeforeUnmount(() => {
+  pendingDeletions.value.forEach((entry) => clearTimeout(entry.timeoutId))
+})
 </script>
 
 <template>
@@ -144,6 +179,13 @@ onMounted(loadItems)
     <div v-else class="empty-state">
       <h2>Покупок пока нет</h2>
       <p>Добавьте позицию выше или нажмите «В покупки» на карточке лекарства в аптечке.</p>
+    </div>
+
+    <div v-if="pendingDeletions.length" class="toast-stack" role="status" aria-live="polite">
+      <div v-for="entry in pendingDeletions" :key="entry.item.id" class="toast">
+        <span>«{{ entry.item.name }}» удалено</span>
+        <button class="text-button" type="button" @click="undoRemoval(entry.item.id)">Отменить</button>
+      </div>
     </div>
   </section>
 </template>
