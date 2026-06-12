@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework import status
@@ -18,6 +19,7 @@ User = get_user_model()
 class AuthInvitationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        cache.clear()
 
     def register_admin(self, username="admin", family_name="Main family"):
         response = self.client.post(
@@ -86,6 +88,24 @@ class AuthInvitationTests(TestCase):
     def test_logout_requires_authentication(self):
         response = self.client.post("/api/auth/logout", {"refresh": "irrelevant"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_login_is_rate_limited(self):
+        self.register_admin()
+
+        for _ in range(5):
+            response = self.client.post(
+                "/api/auth/login",
+                {"username": "admin", "password": "wrong-password"},
+                format="json",
+            )
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        throttled_response = self.client.post(
+            "/api/auth/login",
+            {"username": "admin", "password": "wrong-password"},
+            format="json",
+        )
+        self.assertEqual(throttled_response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
     def test_admin_registers_invites_and_member_accepts(self):
         register_response = self.register_admin()

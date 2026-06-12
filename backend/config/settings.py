@@ -151,6 +151,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "drug_lookup": "20/day",
+        "auth": "5/min",
     },
 }
 
