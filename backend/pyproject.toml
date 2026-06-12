@@ -1,6 +1,6 @@
 [project]
 name = "home-first-aid-kit-backend"
-version = "1.0.0"
+version = "1.1.0"
 description = "Django REST backend for Home First-Aid Kit"
 readme = "../README.md"
 requires-python = ">=3.13"
