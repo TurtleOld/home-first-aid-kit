@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api/client'
+import Skeleton from '../components/Skeleton.vue'
 import { formLabel, statusLabel, storageLabel, unitLabel } from '../constants/medicine'
 import { formatDateTime, formatExpiryMonth } from '../utils/expiry'
 
@@ -137,7 +138,15 @@ onMounted(() => loadPage(1))
     </div>
 
     <p v-if="error" class="form-error">{{ error }}</p>
-    <p v-if="isLoading" class="muted">Загружаем журнал...</p>
+
+    <ul v-if="isLoading" class="changelog-list" aria-hidden="true">
+      <li v-for="n in 5" :key="n" class="skeleton-row">
+        <div class="skeleton-row-text">
+          <Skeleton width="60%" />
+          <Skeleton width="35%" />
+        </div>
+      </li>
+    </ul>
 
     <ol v-else-if="entries.length" class="changelog-list">
       <li v-for="entry in entries" :key="entry.id" class="changelog-entry" :data-action="entry.action">

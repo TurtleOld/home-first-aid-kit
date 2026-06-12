@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
+import Skeleton from '../components/Skeleton.vue'
 import { formatDateTime } from '../utils/expiry'
 
 const UNDO_TIMEOUT = 5000
@@ -128,7 +129,16 @@ onBeforeUnmount(() => {
     </form>
 
     <p v-if="error" class="form-error">{{ error }}</p>
-    <p v-if="isLoading" class="muted">Загружаем список...</p>
+
+    <ul v-if="isLoading" class="shopping-list" aria-hidden="true">
+      <li v-for="n in 4" :key="n" class="skeleton-row">
+        <Skeleton width="22px" height="22px" radius="6px" />
+        <div class="skeleton-row-text">
+          <Skeleton width="50%" />
+          <Skeleton width="30%" />
+        </div>
+      </li>
+    </ul>
 
     <template v-else-if="items.length">
       <ul class="shopping-list">

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
 import MediaImage from '../components/MediaImage.vue'
+import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import {
   STATUS_OPTIONS,
@@ -284,7 +285,15 @@ onMounted(() => {
     <p v-if="notice" class="form-notice" role="status">{{ notice }}</p>
     <p v-if="error" class="form-error">{{ error }}</p>
 
-    <p v-if="isLoading" class="muted">Загружаем аптечку...</p>
+    <div v-if="isLoading" class="medicine-grid" aria-hidden="true">
+      <div v-for="n in 6" :key="n" class="skeleton-card">
+        <Skeleton height="150px" radius="10px" />
+        <Skeleton width="70%" height="1.2em" />
+        <Skeleton width="40%" />
+        <Skeleton width="90%" />
+        <Skeleton width="60%" />
+      </div>
+    </div>
 
     <div v-else-if="medicines.length" class="medicine-grid">
       <article v-for="medicine in medicines" :key="medicine.id" class="medicine-card">
