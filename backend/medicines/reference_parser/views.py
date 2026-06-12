@@ -38,6 +38,18 @@ def cache_key(*parts):
     return "drug-lookup:" + sha256(raw.encode("utf-8")).hexdigest()
 
 
+def format_validation_errors(errors):
+    messages = []
+    for value in errors.values():
+        if isinstance(value, dict):
+            messages.append(format_validation_errors(value))
+        elif isinstance(value, (list, tuple)):
+            messages.extend(str(item) for item in value)
+        else:
+            messages.append(str(value))
+    return " ".join(messages)
+
+
 class UrlSerializer(serializers.Serializer):
     url = serializers.URLField()
 
@@ -62,6 +74,8 @@ class DrugLookupBaseView(APIView):
     throttle_scope = "drug_lookup"
 
     def error_response(self, message, response_status=status.HTTP_400_BAD_REQUEST):
+        if isinstance(message, dict):
+            message = format_validation_errors(message)
         return Response({"ok": False, "error": message}, status=response_status)
 
 

@@ -20,6 +20,14 @@ class ReferenceParserTests(SimpleTestCase):
         self.assertIn({"form": "капсулы", "dosage": "300 мг"}, result["variants"])
         self.assertIn({"form": "гель", "dosage": "2%"}, result["variants"])
 
+    def test_pharmacy_price_rows_are_not_treated_as_variants(self):
+        html = (FIXTURES / "reference_page.html").read_text()
+
+        result = parse_variants_html(html, source_url="https://example.test/drug")
+
+        for variant in result["variants"]:
+            self.assertNotIn("Производитель", variant["form"])
+
     def test_single_variant_never_returns_empty_variants(self):
         html = (FIXTURES / "reference_single_page.html").read_text()
 

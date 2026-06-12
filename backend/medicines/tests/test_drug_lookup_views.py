@@ -69,6 +69,18 @@ class DrugLookupViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["ok"])
 
+    def test_parse_returns_readable_validation_error(self):
+        response = self.client.post(
+            "/api/drug-lookup/parse",
+            {"url": "https://example.test/drug", "form": "x" * 200, "dosage": "300 мг"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["ok"])
+        self.assertIsInstance(response.data["error"], str)
+        self.assertIn("символ", response.data["error"])
+
     def test_rejects_host_outside_allowlist(self):
         response = self.client.post(
             "/api/drug-lookup/forms",

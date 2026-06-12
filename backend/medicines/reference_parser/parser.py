@@ -222,6 +222,8 @@ def extract_variants_from_tables(document):
         if node.tag != "tr":
             continue
         text = node.text
+        if re.search(r"(?i)производитель|manufacturer", text):
+            continue
         if not re.search(r"\d", text):
             continue
         dosage = extract_dosage(text)
@@ -381,6 +383,9 @@ def extract_variants_from_page(page):
             const variants = [];
             for (const row of Array.from(document.querySelectorAll('tr'))) {
                 const text = normalize(row.innerText);
+                if (/производитель|manufacturer/i.test(text)) {
+                    continue;
+                }
                 const dosage = dosageMatch(text);
                 const form = formMatch(text, dosage);
                 if (!form || !dosage) {
@@ -616,7 +621,10 @@ def list_variants(url):
                     return {
                         "trade_name": clamp_text(trade_name, 180),
                         "source_url": url,
-                        "variants": variants,
+                        "variants": [
+                            {"form": clamp_text(variant["form"], 120), "dosage": clamp_text(variant["dosage"], 120)}
+                            for variant in variants
+                        ],
                         "single_variant": False,
                     }
 
