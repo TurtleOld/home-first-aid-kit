@@ -59,6 +59,46 @@ services:
              uv run python manage.py collectstatic --noinput &&
              uv run gunicorn config.wsgi:application --bind 0.0.0.0:8000"
 
+  celery-worker:
+    image: ${BACKEND_IMAGE:-ghcr.io/turtleold/home-first-aid-kit:latest}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-firstaid}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-firstaid}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    volumes:
+      - backend_media:/app/backend/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uv run celery -A config worker --loglevel=info
+
+  celery-beat:
+    image: ${BACKEND_IMAGE:-ghcr.io/turtleold/home-first-aid-kit:latest}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-firstaid}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-firstaid}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uv run celery -A config beat --loglevel=info
+
   nginx:
     image: nginx:1.27-alpine
     ports:

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "accounts",
     "core",
     "medicines",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -167,3 +168,12 @@ SIMPLE_JWT = {
 
 REDIS_URL = os.getenv("REDIS_URL", "")
 CACHES = caches_config(REDIS_URL)
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL or "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_DEFAULT_QUEUE = "home-first-aid-kit"
+
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "")

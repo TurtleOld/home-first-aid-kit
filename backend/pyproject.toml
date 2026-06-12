@@ -16,6 +16,8 @@ dependencies = [
     "playwright>=1.52,<1.53",
     "pillow>=12.2.0,<12.3",
     "redis>=5.2,<6.0",
+    "celery>=5.4,<6.0",
+    "pywebpush>=2.0,<3.0",
 ]
 
 [tool.uv]

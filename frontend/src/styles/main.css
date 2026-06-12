@@ -378,6 +378,20 @@ h2 {
   line-height: 1.45;
 }
 
+.profile-push {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.profile-push p {
+  margin: 0;
+}
+
 /* --- Статусы срока годности --- */
 
 .status-badge {

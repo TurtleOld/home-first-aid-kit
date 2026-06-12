@@ -2,6 +2,9 @@ FROM node:24-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
+ARG VITE_VAPID_PUBLIC_KEY=
+ENV VITE_VAPID_PUBLIC_KEY=${VITE_VAPID_PUBLIC_KEY}
+
 COPY frontend/package*.json ./
 RUN npm ci
 
