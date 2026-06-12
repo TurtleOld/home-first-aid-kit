@@ -1,12 +1,10 @@
 import json
 
+from celery import shared_task
 from django.conf import settings
 from pywebpush import WebPushException, webpush
 
 from accounts.models import Family
-from celery import shared_task
-
-from .models import PushSubscription
 
 
 def build_digest(medicines):
@@ -49,15 +47,18 @@ def send_expiry_notifications():
     if not settings.VAPID_PRIVATE_KEY:
         return
 
-    for family in Family.objects.all():
+    families = Family.objects.prefetch_related("medicines", "memberships__user__push_subscriptions")
+    for family in families:
         medicines = list(family.medicines.all())
         message = build_digest(medicines)
         if not message:
             continue
 
         payload = {"title": "Домашняя аптечка", "body": message}
-        subscriptions = PushSubscription.objects.filter(
-            user__memberships__family=family
-        ).distinct()
+        subscriptions = {
+            subscription
+            for membership in family.memberships.all()
+            for subscription in membership.user.push_subscriptions.all()
+        }
         for subscription in subscriptions:
             send_push(subscription, payload)

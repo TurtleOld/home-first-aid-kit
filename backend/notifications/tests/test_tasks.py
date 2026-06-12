@@ -10,7 +10,6 @@ from medicines.models import Medicine
 from notifications.models import PushSubscription
 from notifications.tasks import build_digest, send_expiry_notifications
 
-
 User = get_user_model()
 
 
@@ -104,3 +103,29 @@ class SendExpiryNotificationsTests(TestCase):
             send_expiry_notifications()
 
         mock_webpush.assert_not_called()
+
+
+@override_settings(VAPID_PRIVATE_KEY="test-private-key", VAPID_CLAIMS_EMAIL="admin@example.com")
+class SendExpiryNotificationsQueryCountTests(TestCase):
+    @patch("notifications.tasks.webpush")
+    def test_query_count_does_not_grow_with_number_of_families(self, mock_webpush):
+        for index in range(3):
+            family = Family.objects.create(name=f"Family {index}")
+            user = User.objects.create_user(username=f"member{index}", password="strong-password-123")
+            Membership.objects.create(user=user, family=family, role=Membership.Role.ADMIN)
+            PushSubscription.objects.create(
+                user=user,
+                endpoint=f"https://push.example.com/{index}",
+                p256dh="p256dh-key",
+                auth="auth-secret",
+            )
+            Medicine.objects.create(
+                family=family,
+                trade_name="Просрочено",
+                expiry_date=timezone.localdate() - timedelta(days=1),
+            )
+
+        with self.assertNumQueries(5):
+            send_expiry_notifications()
+
+        self.assertEqual(mock_webpush.call_count, 3)
