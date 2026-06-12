@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 from hashlib import sha256
 
+from django.conf import settings
 from django.core.cache import cache
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
@@ -21,6 +22,17 @@ def is_http_url(value):
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+def is_allowed_host(hostname):
+    if not hostname:
+        return False
+    hostname = hostname.lower()
+    for allowed in settings.DRUG_LOOKUP_ALLOWED_HOSTS:
+        allowed = allowed.lower()
+        if hostname == allowed or hostname.endswith(f".{allowed}"):
+            return True
+    return False
+
+
 def cache_key(*parts):
     raw = "\x1f".join(parts)
     return "drug-lookup:" + sha256(raw.encode("utf-8")).hexdigest()
@@ -32,6 +44,10 @@ class UrlSerializer(serializers.Serializer):
     def validate_url(self, value):
         if not is_http_url(value):
             raise serializers.ValidationError("Введите корректную http(s)-ссылку.")
+        if not settings.DRUG_LOOKUP_ALLOWED_HOSTS:
+            raise serializers.ValidationError("Поиск по справочнику отключён.")
+        if not is_allowed_host(urlparse(value).hostname):
+            raise serializers.ValidationError("Этот источник не поддерживается.")
         return value
 
 

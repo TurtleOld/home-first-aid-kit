@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 @override_settings(
     SECRET_KEY="test-secret-key-with-enough-length-for-jwt-signing",
     SIMPLE_JWT={"SIGNING_KEY": "test-secret-key-with-enough-length-for-jwt-signing"},
+    DRUG_LOOKUP_ALLOWED_HOSTS=["example.test"],
 )
 class DrugLookupViewTests(TestCase):
     def setUp(self):
@@ -67,3 +68,42 @@ class DrugLookupViewTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["ok"])
+
+    def test_rejects_host_outside_allowlist(self):
+        response = self.client.post(
+            "/api/drug-lookup/forms",
+            {"url": "http://169.254.169.254/latest/meta-data"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["ok"])
+
+    @override_settings(DRUG_LOOKUP_ALLOWED_HOSTS=[])
+    def test_disabled_without_allowlist(self):
+        response = self.client.post(
+            "/api/drug-lookup/forms",
+            {"url": "https://example.test/drug"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["ok"])
+
+    @patch("medicines.reference_parser.views.list_variants")
+    def test_allows_subdomain_of_allowed_host(self, list_variants_mock):
+        list_variants_mock.return_value = {
+            "trade_name": "Тест",
+            "source_url": "https://www.example.test/drug",
+            "variants": [{"form": "капсулы", "dosage": "300 мг"}],
+            "single_variant": False,
+        }
+
+        response = self.client.post(
+            "/api/drug-lookup/forms",
+            {"url": "https://www.example.test/drug"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertTrue(response.data["ok"])
