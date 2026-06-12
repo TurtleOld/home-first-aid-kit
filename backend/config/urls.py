@@ -1,9 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
-from django.conf import settings
-from django.conf.urls.static import static
 
-from core.views import api_root, health
+from core.views import ProtectedMediaView, api_root, health
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -12,8 +10,6 @@ urlpatterns = [
     path("api/", include("accounts.invitation_urls")),
     path("api/", include("medicines.urls")),
     path("api/health/", health, name="health"),
+    path("api/media/<path:path>", ProtectedMediaView.as_view(), name="protected-media"),
     path("api-auth/", include("rest_framework.urls")),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

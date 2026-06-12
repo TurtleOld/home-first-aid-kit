@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
+import MediaImage from '../components/MediaImage.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import {
   STATUS_OPTIONS,
@@ -218,7 +219,7 @@ onMounted(loadMedicines)
           :to="`/medicines/${medicine.id}/edit`"
           :aria-label="`Открыть ${medicine.trade_name}`"
         >
-          <img v-if="medicine.photo" :src="medicine.photo" :alt="medicine.trade_name" loading="lazy" />
+          <MediaImage v-if="medicine.photo" :src="medicine.photo" :alt="medicine.trade_name" />
           <span v-else class="medicine-photo-placeholder" aria-hidden="true">💊</span>
           <StatusBadge class="medicine-status" :status="medicine.status" />
         </RouterLink>

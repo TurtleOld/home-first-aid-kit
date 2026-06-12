@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.models import Family
+from core.uploads import medicine_instruction_upload_to, medicine_photo_upload_to
 from core.utils import compute_expiry_status
 from core.validators import (
     validate_instruction_file_content,
@@ -53,9 +54,9 @@ class Medicine(models.Model):
     expiry_date = models.DateField()
     storage = models.CharField(max_length=20, choices=Storage.choices, default=Storage.KIT)
     notes = models.TextField(blank=True)
-    photo = models.ImageField(upload_to="medicine_photos/", null=True, blank=True)
+    photo = models.ImageField(upload_to=medicine_photo_upload_to, null=True, blank=True)
     instruction_file = models.FileField(
-        upload_to="medicine_instructions/",
+        upload_to=medicine_instruction_upload_to,
         null=True,
         blank=True,
         validators=[

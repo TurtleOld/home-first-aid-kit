@@ -93,6 +93,39 @@ async function rawRequest(path, options = {}, accessToken = null) {
   return data
 }
 
+async function rawBlobRequest(url, accessToken = null) {
+  const headers = new Headers()
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  const response = await fetch(url, { headers })
+  if (!response.ok) {
+    throw new ApiError('Не удалось загрузить файл', { status: response.status })
+  }
+
+  return response.blob()
+}
+
+async function getBlob(url) {
+  const accessToken = authHandlers.getAccessToken()
+
+  try {
+    return await rawBlobRequest(url, accessToken)
+  } catch (error) {
+    if (error.status !== 401 || !authHandlers.getRefreshToken()) {
+      throw error
+    }
+
+    const refreshed = await authHandlers.refreshAccessToken()
+    if (!refreshed) {
+      throw error
+    }
+
+    return rawBlobRequest(url, authHandlers.getAccessToken())
+  }
+}
+
 async function request(path, options = {}) {
   const accessToken = authHandlers.getAccessToken()
 
@@ -142,7 +175,8 @@ export const api = {
   postForm: (path, formData, options) => formRequest(path, 'POST', formData, options),
   patchForm: (path, formData, options) => formRequest(path, 'PATCH', formData, options),
   delete: (path, options) => request(path, { ...options, method: 'DELETE' }),
-  rawRequest
+  rawRequest,
+  getBlob
 }
 
 export { ApiError, configureApiAuth }

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api/client'
 import DrugLookupPanel from '../components/DrugLookupPanel.vue'
+import MediaImage from '../components/MediaImage.vue'
 import ReferenceDataNote from '../components/ReferenceDataNote.vue'
 import {
   FORM_OPTIONS,
@@ -120,6 +121,21 @@ onBeforeUnmount(() => {
 function onInstructionFileChange(event) {
   instructionFile.value = event.target.files?.[0] || null
   removeInstructionFile.value = false
+}
+
+async function openInstructionFile() {
+  if (!existingInstructionUrl.value) {
+    return
+  }
+
+  try {
+    const blob = await api.getBlob(existingInstructionUrl.value)
+    const objectUrl = URL.createObjectURL(blob)
+    window.open(objectUrl, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+  } catch (requestError) {
+    error.value = requestError.message || 'Не удалось открыть файл'
+  }
 }
 
 function clearInstructionFile() {
@@ -366,10 +382,11 @@ async function removeMedicine() {
         <fieldset>
           <legend>Фото упаковки</legend>
           <div class="photo-field">
-            <img
-              v-if="photoPreview || existingPhotoUrl"
+            <img v-if="photoPreview" class="photo-preview" :src="photoPreview" alt="Фото лекарства" />
+            <MediaImage
+              v-else-if="existingPhotoUrl"
               class="photo-preview"
-              :src="photoPreview || existingPhotoUrl"
+              :src="existingPhotoUrl"
               alt="Фото лекарства"
             />
             <div class="photo-controls">
@@ -405,7 +422,8 @@ async function removeMedicine() {
 
           <div v-if="instructionTab === 'file'" class="instruction-pane">
             <p v-if="existingInstructionUrl" class="muted">
-              Загружен файл: <a :href="existingInstructionUrl" target="_blank" rel="noopener">открыть</a>
+              Загружен файл:
+              <button class="text-button" type="button" @click="openInstructionFile">открыть</button>
               <button class="text-button" type="button" @click="clearInstructionFile">Убрать</button>
             </p>
             <input type="file" accept=".pdf,.doc,.docx,.txt,image/*" @change="onInstructionFileChange" />
