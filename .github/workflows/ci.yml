@@ -79,5 +79,7 @@ jobs:
           file: docker/backend/Dockerfile
           push: false
           tags: ghcr.io/turtleold/home-first-aid-kit:ci
+          build-args: |
+            VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           cache-from: type=gha,scope=production
           cache-to: type=gha,mode=max,scope=production
