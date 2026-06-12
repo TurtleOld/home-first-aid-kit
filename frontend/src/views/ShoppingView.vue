@@ -194,7 +194,9 @@ onBeforeUnmount(() => {
     <div v-if="pendingDeletions.length" class="toast-stack" role="status" aria-live="polite">
       <div v-for="entry in pendingDeletions" :key="entry.item.id" class="toast">
         <span>«{{ entry.item.name }}» удалено</span>
-        <button class="text-button" type="button" @click="undoRemoval(entry.item.id)">Отменить</button>
+        <button class="text-button" type="button" @click="undoRemoval(entry.item.id)">
+          Отменить
+        </button>
       </div>
     </div>
   </section>

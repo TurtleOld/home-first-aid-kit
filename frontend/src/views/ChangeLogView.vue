@@ -98,7 +98,9 @@ function entryDiff(entry) {
   }
 
   return Object.entries(entry.changes || {})
-    .filter(([, change]) => change && typeof change === 'object' && ('old' in change || 'new' in change))
+    .filter(
+      ([, change]) => change && typeof change === 'object' && ('old' in change || 'new' in change)
+    )
     .map(([field, change]) => ({
       field: fieldLabel(field),
       old: formatValue(field, change.old),
@@ -149,7 +151,12 @@ onMounted(() => loadPage(1))
     </ul>
 
     <ol v-else-if="entries.length" class="changelog-list">
-      <li v-for="entry in entries" :key="entry.id" class="changelog-entry" :data-action="entry.action">
+      <li
+        v-for="entry in entries"
+        :key="entry.id"
+        class="changelog-entry"
+        :data-action="entry.action"
+      >
         <span class="changelog-marker" aria-hidden="true"></span>
         <div class="changelog-body">
           <p class="changelog-title">
@@ -177,11 +184,21 @@ onMounted(() => loadPage(1))
     </div>
 
     <nav v-if="hasNext || hasPrev" class="pagination" aria-label="Страницы журнала">
-      <button class="text-button" type="button" :disabled="!hasPrev || isLoading" @click="loadPage(page - 1)">
+      <button
+        class="text-button"
+        type="button"
+        :disabled="!hasPrev || isLoading"
+        @click="loadPage(page - 1)"
+      >
         ← Новее
       </button>
       <span class="muted">Страница {{ page }} из {{ totalPages }}</span>
-      <button class="text-button" type="button" :disabled="!hasNext || isLoading" @click="loadPage(page + 1)">
+      <button
+        class="text-button"
+        type="button"
+        :disabled="!hasNext || isLoading"
+        @click="loadPage(page + 1)"
+      >
         Старее →
       </button>
     </nav>

@@ -40,6 +40,8 @@ export async function unsubscribeFromPush() {
     return
   }
 
-  await api.delete('/push/subscription', { body: JSON.stringify({ endpoint: subscription.endpoint }) })
+  await api.delete('/push/subscription', {
+    body: JSON.stringify({ endpoint: subscription.endpoint })
+  })
   await subscription.unsubscribe()
 }

@@ -91,8 +91,8 @@ function fillSelected() {
     <header>
       <h2>Автозаполнение по ссылке</h2>
       <p class="muted">
-        Вставьте ссылку на страницу препарата в справочнике — мы найдём формы выпуска и
-        заполним поля. Любое значение можно поправить перед сохранением.
+        Вставьте ссылку на страницу препарата в справочнике — мы найдём формы выпуска и заполним
+        поля. Любое значение можно поправить перед сохранением.
       </p>
     </header>
 
@@ -106,19 +106,26 @@ function fillSelected() {
         :disabled="isBusy"
         @keydown.enter.prevent="url && findForms()"
       />
-      <button class="primary-button inline-button" type="button" :disabled="!url || isBusy" @click="findForms">
+      <button
+        class="primary-button inline-button"
+        type="button"
+        :disabled="!url || isBusy"
+        @click="findForms"
+      >
         {{ isLoadingForms ? 'Ищем формы...' : 'Найти формы' }}
       </button>
     </div>
 
     <p v-if="isBusy" class="muted lookup-progress" role="status">
       <span class="spinner" aria-hidden="true"></span>
-      {{ isParsing ? 'Разбираем описание препарата — это занимает несколько секунд...' : 'Открываем страницу и ищем варианты...' }}
+      {{
+        isParsing
+          ? 'Разбираем описание препарата — это занимает несколько секунд...'
+          : 'Открываем страницу и ищем варианты...'
+      }}
     </p>
 
-    <p v-if="error" class="form-error">
-      {{ error }} Можно заполнить поля вручную ниже.
-    </p>
+    <p v-if="error" class="form-error">{{ error }} Можно заполнить поля вручную ниже.</p>
 
     <div v-if="showVariantPicker && !isParsing" class="lookup-variants">
       <h3>{{ tradeName || 'Найденные варианты' }}: выберите форму и дозировку</h3>

@@ -14,7 +14,6 @@ from accounts.serializers import tokens_for_user
 from core.models import ChangeLog
 from medicines.models import Medicine, ShoppingItem
 
-
 User = get_user_model()
 
 
@@ -122,9 +121,7 @@ class MedicinesApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(response.data["quantity"], "11.00")
 
-        response = self.client.post(
-            f"/api/medicines/{medicine.id}/intake", {"amount": "2.5"}, format="json"
-        )
+        response = self.client.post(f"/api/medicines/{medicine.id}/intake", {"amount": "2.5"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(response.data["quantity"], "8.50")
 
@@ -147,9 +144,7 @@ class MedicinesApiTests(TestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, bad_amount)
 
-        response = self.client.post(
-            f"/api/medicines/{medicine.id}/intake", {"amount": "100"}, format="json"
-        )
+        response = self.client.post(f"/api/medicines/{medicine.id}/intake", {"amount": "100"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(response.data["quantity"], "0.00")
 

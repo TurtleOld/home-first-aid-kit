@@ -193,9 +193,7 @@ onMounted(() => {
         <p class="eyebrow">Аптечка</p>
         <h1>Лекарства</h1>
       </div>
-      <RouterLink class="primary-button inline-button" to="/medicines/new">
-        + Добавить
-      </RouterLink>
+      <RouterLink class="primary-button inline-button" to="/medicines/new"> + Добавить </RouterLink>
     </div>
 
     <div v-if="!isLoading" class="attention-summary" role="group" aria-label="Требует внимания">
@@ -309,7 +307,9 @@ onMounted(() => {
 
         <div class="medicine-body">
           <h2 class="medicine-name">
-            <RouterLink :to="`/medicines/${medicine.id}/edit`">{{ medicine.trade_name }}</RouterLink>
+            <RouterLink :to="`/medicines/${medicine.id}/edit`">{{
+              medicine.trade_name
+            }}</RouterLink>
           </h2>
           <p v-if="medicine.active_ingredient" class="medicine-ingredient">
             {{ medicine.active_ingredient }}
@@ -318,7 +318,10 @@ onMounted(() => {
           <dl class="medicine-facts">
             <div>
               <dt>Форма</dt>
-              <dd>{{ formLabel(medicine.form) }}<template v-if="medicine.dosage">, {{ medicine.dosage }}</template></dd>
+              <dd>
+                {{ formLabel(medicine.form)
+                }}<template v-if="medicine.dosage">, {{ medicine.dosage }}</template>
+              </dd>
             </div>
             <div>
               <dt>Остаток</dt>
@@ -363,8 +366,12 @@ onMounted(() => {
         </div>
 
         <div class="medicine-actions">
-          <RouterLink class="text-button" :to="`/medicines/${medicine.id}/edit`">Изменить</RouterLink>
-          <button class="text-button" type="button" @click="addToShopping(medicine)">В покупки</button>
+          <RouterLink class="text-button" :to="`/medicines/${medicine.id}/edit`"
+            >Изменить</RouterLink
+          >
+          <button class="text-button" type="button" @click="addToShopping(medicine)">
+            В покупки
+          </button>
           <button class="text-button danger-button" type="button" @click="removeMedicine(medicine)">
             Удалить
           </button>
@@ -375,9 +382,7 @@ onMounted(() => {
     <div v-else class="empty-state">
       <h2>{{ hasFilters ? 'Ничего не найдено' : 'Аптечка пока пуста' }}</h2>
       <p v-if="hasFilters">Попробуйте изменить запрос или сбросить фильтры.</p>
-      <p v-else>
-        Добавьте первое лекарство — вручную или автозаполнением по ссылке на справочник.
-      </p>
+      <p v-else>Добавьте первое лекарство — вручную или автозаполнением по ссылке на справочник.</p>
     </div>
   </section>
 </template>

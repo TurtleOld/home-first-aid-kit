@@ -3,7 +3,12 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api/client'
 import { useAuthStore } from '../stores/auth'
-import { getPushSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from '../utils/push'
+import {
+  getPushSubscription,
+  isPushSupported,
+  subscribeToPush,
+  unsubscribeFromPush
+} from '../utils/push'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -120,8 +125,19 @@ async function changePassword() {
       </p>
       <p v-if="pushError" class="form-error">{{ pushError }}</p>
       <div class="form-actions">
-        <button class="primary-button inline-button" type="button" :disabled="pushBusy" @click="togglePush">
-          {{ pushBusy ? 'Подождите...' : pushSubscribed ? 'Отключить уведомления' : 'Включить уведомления' }}
+        <button
+          class="primary-button inline-button"
+          type="button"
+          :disabled="pushBusy"
+          @click="togglePush"
+        >
+          {{
+            pushBusy
+              ? 'Подождите...'
+              : pushSubscribed
+                ? 'Отключить уведомления'
+                : 'Включить уведомления'
+          }}
         </button>
       </div>
     </div>
@@ -132,11 +148,22 @@ async function changePassword() {
       <div class="form-grid">
         <label>
           Текущий пароль
-          <input v-model="form.current_password" type="password" autocomplete="current-password" required />
+          <input
+            v-model="form.current_password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
         </label>
         <label>
           Новый пароль
-          <input v-model="form.new_password" type="password" autocomplete="new-password" required minlength="8" />
+          <input
+            v-model="form.new_password"
+            type="password"
+            autocomplete="new-password"
+            required
+            minlength="8"
+          />
         </label>
         <label>
           Повторите новый пароль

@@ -49,7 +49,12 @@ class RegisterView(APIView):
     def post(self, request):
         if not registration_is_open():
             return Response(
-                {"detail": "Регистрация закрыта: администратор уже зарегистрирован. Попросите у него ссылку-приглашение."},
+                {
+                    "detail": (
+                        "Регистрация закрыта: администратор уже зарегистрирован. "
+                        "Попросите у него ссылку-приглашение."
+                    )
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         serializer = RegisterSerializer(data=request.data)
@@ -160,9 +165,7 @@ class FamilyMembersView(generics.ListAPIView):
     def get_queryset(self):
         membership = get_current_membership(self.request.user)
         return (
-            Membership.objects.filter(family=membership.family)
-            .select_related("user")
-            .order_by("joined_at")
+            Membership.objects.filter(family=membership.family).select_related("user").order_by("joined_at")
         )
 
 
@@ -195,7 +198,7 @@ class LogoutView(APIView):
         try:
             RefreshToken(refresh).blacklist()
         except TokenError as exc:
-            raise serializers.ValidationError({"refresh": str(exc)})
+            raise serializers.ValidationError({"refresh": str(exc)}) from exc
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

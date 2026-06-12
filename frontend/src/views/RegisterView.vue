@@ -61,7 +61,13 @@ async function submit() {
 
         <label>
           Пароль
-          <input v-model="form.password" type="password" autocomplete="new-password" minlength="8" required />
+          <input
+            v-model="form.password"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          />
         </label>
 
         <label>

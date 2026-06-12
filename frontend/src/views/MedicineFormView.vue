@@ -5,12 +5,7 @@ import { api } from '../api/client'
 import DrugLookupPanel from '../components/DrugLookupPanel.vue'
 import MediaImage from '../components/MediaImage.vue'
 import ReferenceDataNote from '../components/ReferenceDataNote.vue'
-import {
-  FORM_OPTIONS,
-  STORAGE_OPTIONS,
-  UNIT_OPTIONS,
-  matchFormChoice
-} from '../constants/medicine'
+import { FORM_OPTIONS, STORAGE_OPTIONS, UNIT_OPTIONS, matchFormChoice } from '../constants/medicine'
 import { MONTH_OPTIONS, isoDateToMonthYear, monthYearToIsoDate } from '../utils/expiry'
 import { compressImageFile } from '../utils/image'
 
@@ -286,12 +281,7 @@ async function removeMedicine() {
         <p class="eyebrow">Аптечка</p>
         <h1>{{ isEdit ? 'Лекарство' : 'Новое лекарство' }}</h1>
       </div>
-      <button
-        v-if="isEdit"
-        class="text-button danger-button"
-        type="button"
-        @click="removeMedicine"
-      >
+      <button v-if="isEdit" class="text-button danger-button" type="button" @click="removeMedicine">
         Удалить
       </button>
     </div>
@@ -309,11 +299,20 @@ async function removeMedicine() {
           <div class="form-grid">
             <label>
               Торговое название *
-              <input v-model.trim="form.trade_name" required maxlength="180" placeholder="Нурофен" />
+              <input
+                v-model.trim="form.trade_name"
+                required
+                maxlength="180"
+                placeholder="Нурофен"
+              />
             </label>
             <label>
               Действующее вещество
-              <input v-model.trim="form.active_ingredient" maxlength="180" placeholder="ибупрофен" />
+              <input
+                v-model.trim="form.active_ingredient"
+                maxlength="180"
+                placeholder="ибупрофен"
+              />
             </label>
             <label>
               Лекарственная форма
@@ -390,7 +389,12 @@ async function removeMedicine() {
         <fieldset>
           <legend>Фото упаковки</legend>
           <div class="photo-field">
-            <img v-if="photoPreview" class="photo-preview" :src="photoPreview" alt="Фото лекарства" />
+            <img
+              v-if="photoPreview"
+              class="photo-preview"
+              :src="photoPreview"
+              alt="Фото лекарства"
+            />
             <MediaImage
               v-else-if="existingPhotoUrl"
               class="photo-preview"
@@ -431,10 +435,18 @@ async function removeMedicine() {
           <div v-if="instructionTab === 'file'" class="instruction-pane">
             <p v-if="existingInstructionUrl" class="muted">
               Загружен файл:
-              <button class="text-button" type="button" @click="openInstructionFile">открыть</button>
-              <button class="text-button" type="button" @click="clearInstructionFile">Убрать</button>
+              <button class="text-button" type="button" @click="openInstructionFile">
+                открыть
+              </button>
+              <button class="text-button" type="button" @click="clearInstructionFile">
+                Убрать
+              </button>
             </p>
-            <input type="file" accept=".pdf,.doc,.docx,.txt,image/*" @change="onInstructionFileChange" />
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.txt,image/*"
+              @change="onInstructionFileChange"
+            />
           </div>
 
           <label v-else-if="instructionTab === 'url'" class="instruction-pane">
@@ -444,7 +456,11 @@ async function removeMedicine() {
 
           <label v-else class="instruction-pane">
             Текст заметки
-            <textarea v-model="form.instruction_note" rows="4" placeholder="Принимать после еды..."></textarea>
+            <textarea
+              v-model="form.instruction_note"
+              rows="4"
+              placeholder="Принимать после еды..."
+            ></textarea>
           </label>
 
           <div v-if="referenceData" class="reference-block">
@@ -460,7 +476,11 @@ async function removeMedicine() {
           <legend>Примечания</legend>
           <label>
             Заметки (хранение, для кого и т.п.)
-            <textarea v-model="form.notes" rows="3" placeholder="Хранить при температуре не выше 25 °C"></textarea>
+            <textarea
+              v-model="form.notes"
+              rows="3"
+              placeholder="Хранить при температуре не выше 25 °C"
+            ></textarea>
           </label>
         </fieldset>
 
@@ -470,7 +490,9 @@ async function removeMedicine() {
           <button class="primary-button inline-button" type="submit" :disabled="isSaving">
             {{ isSaving ? 'Сохраняем...' : isEdit ? 'Сохранить изменения' : 'Добавить в аптечку' }}
           </button>
-          <button class="text-button" type="button" @click="router.push('/medicines')">Отмена</button>
+          <button class="text-button" type="button" @click="router.push('/medicines')">
+            Отмена
+          </button>
         </div>
       </form>
     </template>

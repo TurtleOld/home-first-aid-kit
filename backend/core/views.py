@@ -2,6 +2,8 @@ import mimetypes
 from pathlib import PurePosixPath
 
 from django.conf import settings
+from django.core.cache import cache
+from django.db import connection
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -21,9 +23,30 @@ def api_root(request):
     )
 
 
+def _check_database():
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return "ok"
+    except Exception:
+        return "error"
+
+
+def _check_cache():
+    try:
+        key = "health-check"
+        cache.set(key, "ok", timeout=5)
+        return "ok" if cache.get(key) == "ok" else "error"
+    except Exception:
+        return "error"
+
+
 @api_view(["GET"])
 def health(request):
-    return Response({"status": "ok"})
+    checks = {"database": _check_database(), "cache": _check_cache()}
+    healthy = all(value == "ok" for value in checks.values())
+    payload = {"status": "ok" if healthy else "degraded", "checks": checks}
+    return Response(payload, status=200 if healthy else 503)
 
 
 PROTECTED_MEDIA_PREFIXES = ("medicine_photos", "medicine_instructions")
@@ -56,4 +79,3 @@ class ProtectedMediaView(APIView):
         response = HttpResponse(content_type=content_type)
         response["X-Accel-Redirect"] = f"/protected-media/{path}"
         return response
-

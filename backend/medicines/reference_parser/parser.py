@@ -2,7 +2,6 @@ import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 
-
 REQUEST_TIMEOUT_MS = 60_000
 DESCRIPTION_SWITCH_TIMEOUT_MS = 10_000
 MAX_TEXT_LENGTH = 4_000
@@ -211,7 +210,12 @@ def extract_variant_form(text, dosage=""):
         " ",
         value,
     )
-    value = re.sub(r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\b|\b\d+(?:[,.]\d+)?%", " ", value, flags=re.IGNORECASE)
+    value = re.sub(
+        r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\b|\b\d+(?:[,.]\d+)?%",
+        " ",
+        value,
+        flags=re.IGNORECASE,
+    )
     value = normalize_text(value)
     return value or extract_form(text)
 
@@ -313,7 +317,9 @@ def parse_variants_html(html, source_url=""):
     single_variant = False
 
     if not variants:
-        variants = [{"form": clamp_text(extract_form(text), 120), "dosage": clamp_text(extract_dosage(text), 120)}]
+        variants = [
+            {"form": clamp_text(extract_form(text), 120), "dosage": clamp_text(extract_dosage(text), 120)}
+        ]
         single_variant = True
 
     return {
@@ -587,7 +593,8 @@ def parse_detail_page(page, source_url="", form="", dosage="", row_text=""):
         "active_ingredient": reference_data.get("active_substance") or extract_active_ingredient(page_text),
         "form": clamp_text(selected_form, 120),
         "dosage": clamp_text(selected_dosage, 120),
-        "storage_conditions": reference_data.get("storage_conditions") or extract_storage_conditions(page_text),
+        "storage_conditions": reference_data.get("storage_conditions")
+        or extract_storage_conditions(page_text),
         "shelf_life": reference_data.get("shelf_life") or extract_shelf_life(page_text),
     }
     selected = {"form": fields["form"], "dosage": fields["dosage"]}
@@ -622,7 +629,10 @@ def list_variants(url):
                         "trade_name": clamp_text(trade_name, 180),
                         "source_url": url,
                         "variants": [
-                            {"form": clamp_text(variant["form"], 120), "dosage": clamp_text(variant["dosage"], 120)}
+                            {
+                                "form": clamp_text(variant["form"], 120),
+                                "dosage": clamp_text(variant["dosage"], 120),
+                            }
                             for variant in variants
                         ],
                         "single_variant": False,

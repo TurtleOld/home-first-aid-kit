@@ -131,14 +131,19 @@ onMounted(() => {
         <p class="eyebrow">Администрирование</p>
         <h1>Приглашения</h1>
       </div>
-      <button class="primary-button inline-button" type="button" :disabled="isCreating" @click="createInvitation">
+      <button
+        class="primary-button inline-button"
+        type="button"
+        :disabled="isCreating"
+        @click="createInvitation"
+      >
         {{ isCreating ? 'Создаём...' : '+ Новая ссылка' }}
       </button>
     </div>
 
     <p class="muted">
-      Создайте ссылку и отправьте её члену семьи: перейдя по ней, он зарегистрируется и
-      попадёт в вашу аптечку. Каждая ссылка одноразовая.
+      Создайте ссылку и отправьте её члену семьи: перейдя по ней, он зарегистрируется и попадёт в
+      вашу аптечку. Каждая ссылка одноразовая.
     </p>
 
     <p v-if="error" class="form-error">{{ error }}</p>
@@ -208,7 +213,11 @@ onMounted(() => {
             {{ resetState[member.user.id].notice }}
           </p>
           <div class="form-actions">
-            <button class="primary-button inline-button" type="submit" :disabled="resetState[member.user.id].isSaving">
+            <button
+              class="primary-button inline-button"
+              type="submit"
+              :disabled="resetState[member.user.id].isSaving"
+            >
               {{ resetState[member.user.id].isSaving ? 'Сохраняем...' : 'Сохранить новый пароль' }}
             </button>
           </div>

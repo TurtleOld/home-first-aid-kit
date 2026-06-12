@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from .reference_parser.views import DrugLookupFormsView, DrugLookupParseView
 from .views import ChangeLogViewSet, MedicineViewSet, ShoppingItemViewSet
 
-
 router = DefaultRouter(trailing_slash=False)
 router.register("medicines", MedicineViewSet, basename="medicine")
 router.register("shopping-items", ShoppingItemViewSet, basename="shopping-item")
