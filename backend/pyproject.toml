@@ -1,6 +1,6 @@
 [project]
 name = "home-first-aid-kit-backend"
-version = "0.1.0"
+version = "1.0.0"
 description = "Django REST backend for Home First-Aid Kit"
 readme = "../README.md"
 requires-python = ">=3.13"
@@ -22,3 +22,19 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11,<0.12",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "DJ"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*.py" = ["E501"]
+"medicines/reference_parser/parser.py" = ["E501"]
