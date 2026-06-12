@@ -1,10 +1,13 @@
 import json
 
+import structlog
 from celery import shared_task
 from django.conf import settings
 from pywebpush import WebPushException, webpush
 
 from accounts.models import Family
+
+logger = structlog.get_logger(__name__)
 
 
 def build_digest(medicines):
@@ -40,6 +43,12 @@ def send_push(subscription, payload):
     except WebPushException as error:
         if error.response is not None and error.response.status_code in (404, 410):
             subscription.delete()
+        else:
+            logger.warning(
+                "push_send_failed",
+                subscription_id=subscription.id,
+                status_code=getattr(error.response, "status_code", None),
+            )
 
 
 @shared_task
