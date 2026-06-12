@@ -8,7 +8,6 @@ from rest_framework.test import APIClient
 from accounts.models import Family, Invitation, Membership
 from accounts.serializers import tokens_for_user
 
-
 User = get_user_model()
 
 
@@ -208,9 +207,7 @@ class AuthInvitationTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        old_refresh_response = self.client.post(
-            "/api/auth/refresh", {"refresh": refresh}, format="json"
-        )
+        old_refresh_response = self.client.post("/api/auth/refresh", {"refresh": refresh}, format="json")
         self.assertEqual(old_refresh_response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         login_response = self.client.post(
@@ -302,6 +299,47 @@ class AuthInvitationTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_registration_ignores_is_staff_and_is_superuser(self):
+        response = self.client.post(
+            "/api/auth/register",
+            {
+                "username": "admin",
+                "password": "strong-password-123",
+                "family_name": "Main family",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+        user = User.objects.get(username="admin")
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_invitation_accept_ignores_is_staff_and_is_superuser(self):
+        register_response = self.register_admin()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_response.data['access']}")
+        invite_response = self.client.post("/api/invitations", {}, format="json")
+        token = invite_response.data["token"]
+
+        self.client.credentials()
+        accept_response = self.client.post(
+            f"/api/invitations/{token}/accept",
+            {
+                "username": "member",
+                "password": "strong-password-123",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+            format="json",
+        )
+        self.assertEqual(accept_response.status_code, status.HTTP_201_CREATED, accept_response.data)
+
+        user = User.objects.get(username="member")
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
 
     def test_other_family_member_cannot_revoke_invitation(self):
         first = self.register_admin(username="first", family_name="First")
