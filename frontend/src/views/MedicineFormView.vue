@@ -59,7 +59,7 @@ const error = ref('')
 const notice = ref('')
 
 const yearNow = new Date().getFullYear()
-const YEAR_OPTIONS = Array.from({ length: 16 }, (_, index) => yearNow - 2 + index)
+const YEAR_OPTIONS = Array.from({ length: 26 }, (_, index) => yearNow - 12 + index)
 
 onMounted(async () => {
   if (!isEdit.value) {
