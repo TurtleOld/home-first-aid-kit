@@ -144,7 +144,7 @@ export const useAuthStore = defineStore('auth', {
           },
           null
         )
-        this.setTokens({ access: response.access })
+        this.setTokens({ access: response.access, refresh: response.refresh })
         return true
       } catch {
         this.logout()

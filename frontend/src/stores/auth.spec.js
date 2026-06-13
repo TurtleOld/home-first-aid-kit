@@ -97,6 +97,17 @@ describe('auth store', () => {
       )
     })
 
+    it('stores the rotated refresh token on success', async () => {
+      const store = useAuthStore()
+      store.setTokens({ access: 'old-access', refresh: 'refresh-1' })
+      api.rawRequest.mockResolvedValue({ access: 'new-access', refresh: 'refresh-2' })
+
+      await store.refreshAccessToken()
+
+      expect(store.refreshToken).toBe('refresh-2')
+      expect(localStorage.getItem('hfk-refresh-token')).toBe('refresh-2')
+    })
+
     it('logs out when there is no refresh token', async () => {
       const store = useAuthStore()
       store.setTokens({ access: 'old-access', refresh: 'refresh-1' })
