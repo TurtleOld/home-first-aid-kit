@@ -21,4 +21,5 @@ if [ -d /app/runtime/nginx ]; then
     cp /app/nginx/default.conf /app/runtime/nginx/default.conf
 fi
 
+export HOME=/app
 exec setpriv --reuid=app --regid=app --clear-groups "$@"
