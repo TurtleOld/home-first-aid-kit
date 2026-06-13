@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
 import AttentionSummary from '../components/AttentionSummary.vue'
@@ -14,6 +14,7 @@ import {
   unitLabel
 } from '../constants/medicine'
 import { formatExpiryMonth, formatQuantity } from '../utils/expiry'
+import { medicineCountLabel } from '../utils/medicineCount'
 
 const medicines = ref([])
 const isLoading = ref(true)
@@ -50,6 +51,8 @@ const {
   focusLowStock,
   resetFilters
 } = useMedicineFilters(loadMedicines)
+
+const countLabel = computed(() => medicineCountLabel(medicines.value.length, hasFilters.value))
 
 function refreshSummary() {
   attentionSummary.value?.refresh()
@@ -147,13 +150,16 @@ onMounted(() => {
     />
 
     <div class="filter-bar">
-      <input
-        v-model.trim="filters.search"
-        class="search-input"
-        type="search"
-        placeholder="Поиск по названию или действующему веществу"
-        aria-label="Поиск лекарства"
-      />
+      <div class="search-row">
+        <input
+          v-model.trim="filters.search"
+          class="search-input"
+          type="search"
+          placeholder="Поиск по названию или действующему веществу"
+          aria-label="Поиск лекарства"
+        />
+        <span v-if="!isLoading" class="medicine-count" role="status">{{ countLabel }}</span>
+      </div>
 
       <div class="chip-row" role="group" aria-label="Фильтр по статусу">
         <button
