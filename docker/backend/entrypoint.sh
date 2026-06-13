@@ -10,7 +10,11 @@ sync_directory() {
     cp -a "$source_dir"/. "$target_dir"/
 }
 
-chown -R app:app /app/backend/media /app/backend/staticfiles
+for dir in /app/backend/media /app/backend/staticfiles; do
+    if [ -d "$dir" ]; then
+        chown -R app:app "$dir"
+    fi
+done
 
 if [ -d /app/runtime/frontend ]; then
     sync_directory /app/frontend/dist /app/runtime/frontend
