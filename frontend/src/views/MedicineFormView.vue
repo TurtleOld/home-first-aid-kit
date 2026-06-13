@@ -3,7 +3,6 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api/client'
 import DrugLookupPanel from '../components/DrugLookupPanel.vue'
-import PhotoUploadField from '../components/PhotoUploadField.vue'
 import ReferenceDataNote from '../components/ReferenceDataNote.vue'
 import { FORM_OPTIONS, STORAGE_OPTIONS, UNIT_OPTIONS, matchFormChoice } from '../constants/medicine'
 import { MONTH_OPTIONS, isoDateToMonthYear, monthYearToIsoDate } from '../utils/expiry'
@@ -30,10 +29,6 @@ const form = reactive({
 const expiry = reactive({ month: null, year: null })
 const sourceUrl = ref('')
 const referenceData = ref(null)
-
-const photoFile = ref(null)
-const existingPhotoUrl = ref('')
-const removePhoto = ref(false)
 
 const instructionFile = ref(null)
 const existingInstructionUrl = ref('')
@@ -69,7 +64,6 @@ onMounted(async () => {
     Object.assign(expiry, isoDateToMonthYear(medicine.expiry_date))
     sourceUrl.value = medicine.source_url || ''
     referenceData.value = medicine.reference_data
-    existingPhotoUrl.value = medicine.photo || ''
     existingInstructionUrl.value = medicine.instruction_file || ''
     if (medicine.instruction_note) {
       instructionTab.value = 'note'
@@ -170,9 +164,6 @@ function buildFormData(payload) {
     }
     data.append(key, value ?? '')
   })
-  if (photoFile.value) {
-    data.append('photo', photoFile.value)
-  }
   if (instructionFile.value) {
     data.append('instruction_file', instructionFile.value)
   }
@@ -190,9 +181,8 @@ async function save() {
   isSaving.value = true
   try {
     const payload = buildPayload()
-    const hasFiles = Boolean(photoFile.value || instructionFile.value)
+    const hasFiles = Boolean(instructionFile.value)
     const clears = {}
-    if (removePhoto.value && !photoFile.value) clears.photo = null
     if (removeInstructionFile.value && !instructionFile.value) clears.instruction_file = null
 
     let saved
@@ -346,15 +336,6 @@ async function removeMedicine() {
               </select>
             </div>
           </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Фото упаковки</legend>
-          <PhotoUploadField
-            v-model:file="photoFile"
-            v-model:removed="removePhoto"
-            :existing-url="existingPhotoUrl"
-          />
         </fieldset>
 
         <fieldset>
