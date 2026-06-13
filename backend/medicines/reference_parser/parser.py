@@ -396,7 +396,7 @@ def extract_variants_from_page(page):
                     const dosageEl = row.querySelector('.tn__filter__dosage');
                     const form = normalize(input ? input.dataset.name : '');
                     const dosage = normalize(dosageEl ? dosageEl.innerText : '');
-                    if (!form || !dosage) {
+                    if (!form) {
                         continue;
                     }
                     const exists = variants.some((item) => item.form === form && item.dosage === dosage);

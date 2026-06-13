@@ -46,3 +46,17 @@ class ExtractVariantsFromPageTests(SimpleTestCase):
                 {"form": "суппозитории ректальные", "dosage": "100 мг"},
             ],
         )
+
+    def test_extracts_form_rows_without_a_dosage_column(self):
+        html = (FIXTURES / "reference_rls_filter_table_no_dosage.html").read_text()
+        self.page.set_content(html)
+
+        variants = extract_variants_from_page(self.page)
+
+        self.assertEqual(
+            variants,
+            [
+                {"form": "раствор для приема внутрь", "dosage": ""},
+                {"form": "таблетки для рассасывания", "dosage": ""},
+            ],
+        )
