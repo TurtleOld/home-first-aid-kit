@@ -393,15 +393,18 @@ def extract_variants_from_page(page):
             if (filterRows.length > 0) {
                 for (const row of filterRows) {
                     const input = row.querySelector('input[data-name]');
-                    const dosageEl = row.querySelector('.tn__filter__dosage');
                     const form = normalize(input ? input.dataset.name : '');
-                    const dosage = normalize(dosageEl ? dosageEl.innerText : '');
                     if (!form) {
                         continue;
                     }
-                    const exists = variants.some((item) => item.form === form && item.dosage === dosage);
-                    if (!exists) {
-                        variants.push({form, dosage});
+                    const dosages = Array.from(row.querySelectorAll('.tn__filter__dosage'))
+                        .map((el) => normalize(el.innerText))
+                        .filter(Boolean);
+                    for (const dosage of dosages.length > 0 ? dosages : ['']) {
+                        const exists = variants.some((item) => item.form === form && item.dosage === dosage);
+                        if (!exists) {
+                            variants.push({form, dosage});
+                        }
                     }
                 }
                 return variants;

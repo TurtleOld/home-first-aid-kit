@@ -60,3 +60,17 @@ class ExtractVariantsFromPageTests(SimpleTestCase):
                 {"form": "таблетки для рассасывания", "dosage": ""},
             ],
         )
+
+    def test_extracts_a_variant_per_dosage_for_rows_with_several_dosages(self):
+        html = (FIXTURES / "reference_rls_filter_table_multi_dosage.html").read_text()
+        self.page.set_content(html)
+
+        variants = extract_variants_from_page(self.page)
+
+        self.assertIn({"form": "гель для наружного применения", "dosage": "1%"}, variants)
+        self.assertIn({"form": "гель для наружного применения", "dosage": "5%"}, variants)
+        self.assertIn({"form": "суппозитории ректальные", "dosage": "50 мг"}, variants)
+        self.assertIn({"form": "суппозитории ректальные", "dosage": "100 мг"}, variants)
+        self.assertIn({"form": "раствор для внутримышечного введения", "dosage": "25 мг/мл"}, variants)
+        self.assertIn({"form": "раствор для внутримышечного введения", "dosage": "75 мг/3 мл"}, variants)
+        self.assertEqual(len(variants), 13)
