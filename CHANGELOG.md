@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.2...v1.1.3) (2026-06-13)
+
+
+### Bug Fixes
+
+* **backend:** корректно разбирать таблицу выбора формы у агрегатора ([#34](https://github.com/TurtleOld/home-first-aid-kit/issues/34)) ([11c8510](https://github.com/TurtleOld/home-first-aid-kit/commit/11c8510506a2db1b20e4e5f0720128cbf19ff246))
+* **frontend:** сохранять ротированный refresh-токен ([#33](https://github.com/TurtleOld/home-first-aid-kit/issues/33)) ([b730772](https://github.com/TurtleOld/home-first-aid-kit/commit/b730772db23b3ee086b0050da3baf73aa7c78ce6))
+
 ## [1.1.2](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.1...v1.1.2) (2026-06-13)
 
 
