@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.0...v1.1.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **docker:** чинить владельца смонтированных томов перед запуском от app ([#28](https://github.com/TurtleOld/home-first-aid-kit/issues/28)) ([b26cd8a](https://github.com/TurtleOld/home-first-aid-kit/commit/b26cd8a93f3cfa150c3f424e2cdda54e937814d2))
+
 ## [1.1.0](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.0.0...v1.1.0) (2026-06-12)
 
 
