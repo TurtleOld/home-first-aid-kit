@@ -64,8 +64,6 @@ RUN chmod +x /entrypoint.sh
 RUN mkdir -p /app/backend/media /app/backend/staticfiles /app/runtime/frontend /app/runtime/nginx \
     && chown -R app:app /app
 
-USER app
-
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
