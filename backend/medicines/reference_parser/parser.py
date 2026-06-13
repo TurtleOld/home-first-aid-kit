@@ -374,19 +374,42 @@ def extract_variants_from_page(page):
         """
         () => {
             const normalize = (value) => String(value || '').replace(/\\s+/g, ' ').trim();
+            const UNIT_PATTERN = '\\\\d+(?:[,.]\\\\d+)?\\\\s*(?:мг/мл|мкг/мл|мг|мкг|мл|г|mg|mcg|ml|g)(?![а-яёa-z])|\\\\d+(?:[,.]\\\\d+)?%';
             const dosageMatch = (text) => {
-                const match = text.match(/\\b\\d+(?:[,.]\\d+)?\\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\\b|\\b\\d+(?:[,.]\\d+)?%/i);
+                const match = text.match(new RegExp(UNIT_PATTERN, 'i'));
                 return match ? normalize(match[0]) : '';
             };
             const formMatch = (text, dosage) => {
                 let form = normalize(text)
                     .replace(dosage, ' ')
                     .replace(/(лекарственная\\s+форма|dosage\\s+form|дозировка|dosage|выбор\\s+описания)/ig, ' ')
-                    .replace(/\\b\\d+(?:[,.]\\d+)?\\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\\b|\\b\\d+(?:[,.]\\d+)?%/ig, ' ');
+                    .replace(new RegExp(UNIT_PATTERN, 'ig'), ' ');
                 form = normalize(form);
                 return form;
             };
+
             const variants = [];
+            const filterRows = Array.from(document.querySelectorAll('tr.tn__filter__item'));
+            if (filterRows.length > 0) {
+                for (const row of filterRows) {
+                    const input = row.querySelector('input[data-name]');
+                    const form = normalize(input ? input.dataset.name : '');
+                    if (!form) {
+                        continue;
+                    }
+                    const dosages = Array.from(row.querySelectorAll('.tn__filter__dosage'))
+                        .map((el) => normalize(el.innerText))
+                        .filter(Boolean);
+                    for (const dosage of dosages.length > 0 ? dosages : ['']) {
+                        const exists = variants.some((item) => item.form === form && item.dosage === dosage);
+                        if (!exists) {
+                            variants.push({form, dosage});
+                        }
+                    }
+                }
+                return variants;
+            }
+
             for (const row of Array.from(document.querySelectorAll('tr'))) {
                 const text = normalize(row.innerText);
                 if (/производитель|manufacturer/i.test(text)) {
