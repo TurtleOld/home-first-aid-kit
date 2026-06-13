@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.1...v1.1.2) (2026-06-13)
+
+
+### Bug Fixes
+
+* **docker:** задать HOME для app в entrypoint ([#31](https://github.com/TurtleOld/home-first-aid-kit/issues/31)) ([1e781fc](https://github.com/TurtleOld/home-first-aid-kit/commit/1e781fcf27af44fbea9b60ddd051ed7d6e9f27de))
+
 ## [1.1.1](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.0...v1.1.1) (2026-06-13)
 
 
