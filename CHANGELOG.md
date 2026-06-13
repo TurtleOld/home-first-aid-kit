@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.3...v1.2.0) (2026-06-13)
+
+
+### Features
+
+* убрать фото лекарств и добавить счётчик у поиска ([#36](https://github.com/TurtleOld/home-first-aid-kit/issues/36)) ([38f046c](https://github.com/TurtleOld/home-first-aid-kit/commit/38f046c2cf9627b7dd89c846b3b56035c29b84c1))
+
 ## [1.1.3](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.2...v1.1.3) (2026-06-13)
 
 
