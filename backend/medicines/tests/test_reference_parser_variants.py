@@ -1,0 +1,48 @@
+from pathlib import Path
+
+from django.test import SimpleTestCase
+
+from medicines.reference_parser.parser import extract_variants_from_page
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+
+class ExtractVariantsFromPageTests(SimpleTestCase):
+    def setUp(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            self.skipTest("Playwright is not installed")
+
+        playwright_cm = sync_playwright()
+        playwright = playwright_cm.__enter__()
+        self.addCleanup(playwright_cm.__exit__, None, None, None)
+
+        try:
+            browser = playwright.chromium.launch()
+        except Exception:
+            self.skipTest("Chromium browser is not installed")
+        self.addCleanup(browser.close)
+
+        self.page = browser.new_page()
+
+    def test_extracts_all_rows_from_the_form_selection_table(self):
+        html = (FIXTURES / "reference_rls_filter_table.html").read_text()
+        self.page.set_content(html)
+
+        variants = extract_variants_from_page(self.page)
+
+        self.assertEqual(
+            variants,
+            [
+                {"form": "капсулы", "dosage": "50 мг"},
+                {"form": "таблетки, покрытые пленочной оболочкой", "dosage": "100 мг"},
+                {
+                    "form": "раствор для внутривенного и внутримышечного введения",
+                    "dosage": "50 мг/мл",
+                },
+                {"form": "крем для наружного применения", "dosage": "5%"},
+                {"form": "гель для наружного применения", "dosage": "2.5%"},
+                {"form": "суппозитории ректальные", "dosage": "100 мг"},
+            ],
+        )
