@@ -67,7 +67,7 @@ class SchemaSwaggerView(DebugOnlyMixin, SpectacularSwaggerView):
     pass
 
 
-PROTECTED_MEDIA_PREFIXES = ("medicine_photos", "medicine_instructions")
+PROTECTED_MEDIA_PREFIXES = ("medicine_instructions",)
 
 
 class ProtectedMediaView(APIView):

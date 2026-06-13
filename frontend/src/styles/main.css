@@ -520,8 +520,24 @@ h2 {
   gap: 12px;
 }
 
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .search-input {
+  flex: 1;
+  min-width: 240px;
   max-width: 520px;
+}
+
+.medicine-count {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .chip-row {
@@ -595,41 +611,17 @@ h2 {
   translate: 0 -2px;
 }
 
-.medicine-photo {
-  position: relative;
-  display: grid;
-  height: 150px;
-  place-items: center;
-  background: var(--surface-muted);
-  text-decoration: none;
-}
-
-.medicine-photo img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.medicine-photo-placeholder {
-  font-size: 2.6rem;
-  opacity: 0.55;
-  filter: grayscale(0.4);
-}
-
-.medicine-status {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-}
-
 .medicine-body {
   display: grid;
   gap: 8px;
-  padding: 14px 16px;
+  padding: 16px;
   flex: 1;
+}
+
+.medicine-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .medicine-name {
@@ -792,28 +784,6 @@ h2 {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 12px;
   max-width: 380px;
-}
-
-.photo-field {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.photo-preview {
-  width: 132px;
-  height: 132px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.photo-controls {
-  display: grid;
-  gap: 8px;
-  flex: 1;
-  min-width: 220px;
 }
 
 .segmented {

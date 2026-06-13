@@ -32,6 +32,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="medicine",
             name="photo",
-            field=models.ImageField(blank=True, null=True, upload_to=core.uploads.medicine_photo_upload_to),
+            field=models.ImageField(blank=True, null=True, upload_to="medicine_photos/"),
         ),
     ]

@@ -1,11 +1,9 @@
-import io
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -15,12 +13,6 @@ from core.models import ChangeLog
 from medicines.models import Medicine, ShoppingItem
 
 User = get_user_model()
-
-
-def png_bytes():
-    buffer = io.BytesIO()
-    Image.new("RGB", (1, 1)).save(buffer, format="PNG")
-    return buffer.getvalue()
 
 
 @override_settings(
@@ -261,33 +253,41 @@ class MedicinesApiTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
-    def test_photo_url_uses_random_family_scoped_path(self):
-        photo = SimpleUploadedFile("photo.png", png_bytes(), content_type="image/png")
+    def test_instruction_file_url_uses_random_family_scoped_path(self):
+        instruction_file = SimpleUploadedFile(
+            "instruction.pdf",
+            b"%PDF-1.4 minimal pdf content",
+            content_type="application/pdf",
+        )
         response = self.client.post(
             "/api/medicines",
-            self.medicine_payload(photo=photo),
+            self.medicine_payload(instruction_file=instruction_file),
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
-        photo_url = response.data["photo"]
-        self.assertIn(f"/api/media/medicine_photos/{self.family.id}/", photo_url)
-        self.assertNotIn("photo.png", photo_url)
+        file_url = response.data["instruction_file"]
+        self.assertIn(f"/api/media/medicine_instructions/{self.family.id}/", file_url)
+        self.assertNotIn("instruction.pdf", file_url)
 
     def test_protected_media_access_control(self):
-        photo = SimpleUploadedFile("photo.png", png_bytes(), content_type="image/png")
+        instruction_file = SimpleUploadedFile(
+            "instruction.pdf",
+            b"%PDF-1.4 minimal pdf content",
+            content_type="application/pdf",
+        )
         create_response = self.client.post(
             "/api/medicines",
-            self.medicine_payload(photo=photo),
+            self.medicine_payload(instruction_file=instruction_file),
             format="multipart",
         )
-        photo_url = create_response.data["photo"]
+        file_url = create_response.data["instruction_file"]
 
-        own_response = self.client.get(photo_url)
+        own_response = self.client.get(file_url)
         self.assertEqual(own_response.status_code, status.HTTP_200_OK)
 
         anonymous_client = APIClient()
-        anonymous_response = anonymous_client.get(photo_url)
+        anonymous_response = anonymous_client.get(file_url)
         self.assertEqual(anonymous_response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         other_user = User.objects.create_user(username="outsider", password="strong-password-123")
@@ -295,19 +295,23 @@ class MedicinesApiTests(TestCase):
         Membership.objects.create(user=other_user, family=other_family, role=Membership.Role.ADMIN)
         other_client = APIClient()
         other_client.credentials(HTTP_AUTHORIZATION=f"Bearer {tokens_for_user(other_user)['access']}")
-        other_response = other_client.get(photo_url)
+        other_response = other_client.get(file_url)
         self.assertEqual(other_response.status_code, status.HTTP_403_FORBIDDEN)
 
     @override_settings(DEBUG=False)
     def test_protected_media_uses_accel_redirect_outside_debug(self):
-        photo = SimpleUploadedFile("photo.png", png_bytes(), content_type="image/png")
+        instruction_file = SimpleUploadedFile(
+            "instruction.pdf",
+            b"%PDF-1.4 minimal pdf content",
+            content_type="application/pdf",
+        )
         create_response = self.client.post(
             "/api/medicines",
-            self.medicine_payload(photo=photo),
+            self.medicine_payload(instruction_file=instruction_file),
             format="multipart",
         )
-        photo_url = create_response.data["photo"]
+        file_url = create_response.data["instruction_file"]
 
-        response = self.client.get(photo_url)
+        response = self.client.get(file_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response["X-Accel-Redirect"].startswith("/protected-media/medicine_photos/"))
+        self.assertTrue(response["X-Accel-Redirect"].startswith("/protected-media/medicine_instructions/"))

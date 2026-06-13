@@ -46,7 +46,6 @@ class MedicineSerializer(serializers.ModelSerializer):
             "expiry_date",
             "storage",
             "notes",
-            "photo",
             "instruction_file",
             "instruction_url",
             "instruction_note",

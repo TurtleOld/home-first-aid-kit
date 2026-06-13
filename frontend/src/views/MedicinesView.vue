@@ -1,9 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
 import AttentionSummary from '../components/AttentionSummary.vue'
-import MediaImage from '../components/MediaImage.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useMedicineFilters } from '../composables/useMedicineFilters'
@@ -15,6 +14,7 @@ import {
   unitLabel
 } from '../constants/medicine'
 import { formatExpiryMonth, formatQuantity } from '../utils/expiry'
+import { medicineCountLabel } from '../utils/medicineCount'
 
 const medicines = ref([])
 const isLoading = ref(true)
@@ -51,6 +51,8 @@ const {
   focusLowStock,
   resetFilters
 } = useMedicineFilters(loadMedicines)
+
+const countLabel = computed(() => medicineCountLabel(medicines.value.length, hasFilters.value))
 
 function refreshSummary() {
   attentionSummary.value?.refresh()
@@ -148,13 +150,16 @@ onMounted(() => {
     />
 
     <div class="filter-bar">
-      <input
-        v-model.trim="filters.search"
-        class="search-input"
-        type="search"
-        placeholder="Поиск по названию или действующему веществу"
-        aria-label="Поиск лекарства"
-      />
+      <div class="search-row">
+        <input
+          v-model.trim="filters.search"
+          class="search-input"
+          type="search"
+          placeholder="Поиск по названию или действующему веществу"
+          aria-label="Поиск лекарства"
+        />
+        <span v-if="!isLoading" class="medicine-count" role="status">{{ countLabel }}</span>
+      </div>
 
       <div class="chip-row" role="group" aria-label="Фильтр по статусу">
         <button
@@ -200,7 +205,7 @@ onMounted(() => {
 
     <div v-if="isLoading" class="medicine-grid" aria-hidden="true">
       <div v-for="n in 6" :key="n" class="skeleton-card">
-        <Skeleton height="150px" radius="10px" />
+        <Skeleton width="30%" height="1.4em" radius="999px" />
         <Skeleton width="70%" height="1.2em" />
         <Skeleton width="40%" />
         <Skeleton width="90%" />
@@ -210,17 +215,10 @@ onMounted(() => {
 
     <div v-else-if="medicines.length" class="medicine-grid">
       <article v-for="medicine in medicines" :key="medicine.id" class="medicine-card">
-        <RouterLink
-          class="medicine-photo"
-          :to="`/medicines/${medicine.id}/edit`"
-          :aria-label="`Открыть ${medicine.trade_name}`"
-        >
-          <MediaImage v-if="medicine.photo" :src="medicine.photo" :alt="medicine.trade_name" />
-          <span v-else class="medicine-photo-placeholder" aria-hidden="true">💊</span>
-          <StatusBadge class="medicine-status" :status="medicine.status" />
-        </RouterLink>
-
         <div class="medicine-body">
+          <div class="medicine-card-head">
+            <StatusBadge :status="medicine.status" />
+          </div>
           <h2 class="medicine-name">
             <RouterLink :to="`/medicines/${medicine.id}/edit`">{{
               medicine.trade_name
