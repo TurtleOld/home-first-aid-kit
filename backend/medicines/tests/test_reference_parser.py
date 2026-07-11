@@ -52,3 +52,26 @@ class ReferenceParserTests(SimpleTestCase):
         self.assertEqual(result["fields"]["active_ingredient"], "тестолол")
         self.assertIn("storage_conditions", result["reference_data"])
         self.assertIn("Условия хранения", result["reference_data"]["sections"])
+
+    def test_single_variant_with_enzyme_activity_uses_units_before_percentages(self):
+        html = """
+            <html lang="ru">
+              <head><title>Мезим форте</title></head>
+              <body>
+                <h1>Мезим® форте</h1>
+                <h2>Состав</h2>
+                <p>Таблетки, покрытые оболочкой. Липазы 3500 ЕД, амилазы 4200 ЕД.</p>
+                <p>Оболочка: симетикон эмульсия 30%.</p>
+              </body>
+            </html>
+        """
+
+        variants = parse_variants_html(html)
+        detail = parse_detail_html(html)
+
+        self.assertEqual(
+            variants["variants"],
+            [{"form": "таблетки, покрытые оболочкой", "dosage": "3500 ЕД"}],
+        )
+        self.assertEqual(detail["fields"]["form"], "таблетки, покрытые оболочкой")
+        self.assertEqual(detail["fields"]["dosage"], "3500 ЕД")
