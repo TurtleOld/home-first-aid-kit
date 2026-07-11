@@ -74,3 +74,18 @@ class ExtractVariantsFromPageTests(SimpleTestCase):
         self.assertIn({"form": "раствор для внутримышечного введения", "dosage": "25 мг/мл"}, variants)
         self.assertIn({"form": "раствор для внутримышечного введения", "dosage": "75 мг/3 мл"}, variants)
         self.assertEqual(len(variants), 13)
+
+    def test_does_not_treat_composition_table_as_variant_selection(self):
+        self.page.set_content(
+            """
+            <table>
+              <tbody>
+                <tr><td>оболочка</td><td>гипромеллоза; симетикон эмульсия 30%</td></tr>
+              </tbody>
+            </table>
+            """
+        )
+
+        variants = extract_variants_from_page(self.page)
+
+        self.assertEqual(variants, [])

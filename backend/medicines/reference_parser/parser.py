@@ -413,19 +413,28 @@ def extract_variants_from_page(page):
                 return variants;
             }
 
-            for (const row of Array.from(document.querySelectorAll('tr'))) {
-                const text = normalize(row.innerText);
-                if (/производитель|manufacturer/i.test(text)) {
+            for (const table of Array.from(document.querySelectorAll('table'))) {
+                const headers = normalize(
+                    Array.from(table.querySelectorAll('th')).map((cell) => cell.innerText).join(' ')
+                );
+                if (!/(лекарственная форма|dosage form)/i.test(headers)
+                    || !/(дозировка|dosage)/i.test(headers)) {
                     continue;
                 }
-                const dosage = dosageMatch(text);
-                const form = formMatch(text, dosage);
-                if (!form || !dosage) {
-                    continue;
-                }
-                const exists = variants.some((item) => item.form === form && item.dosage === dosage);
-                if (!exists) {
-                    variants.push({form, dosage});
+                for (const row of Array.from(table.querySelectorAll('tr'))) {
+                    const text = normalize(row.innerText);
+                    if (/производитель|manufacturer/i.test(text)) {
+                        continue;
+                    }
+                    const dosage = dosageMatch(text);
+                    const form = formMatch(text, dosage);
+                    if (!form || !dosage) {
+                        continue;
+                    }
+                    const exists = variants.some((item) => item.form === form && item.dosage === dosage);
+                    if (!exists) {
+                        variants.push({form, dosage});
+                    }
                 }
             }
             return variants;
