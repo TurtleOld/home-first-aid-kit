@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.2.1...v1.2.2) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** не считать состав вариантом препарата ([#40](https://github.com/TurtleOld/home-first-aid-kit/issues/40)) ([5e01f06](https://github.com/TurtleOld/home-first-aid-kit/commit/5e01f0671b14242d74c5da3083d33efc1a2583ef))
+
 ## [1.2.1](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.2.0...v1.2.1) (2026-07-11)
 
 
