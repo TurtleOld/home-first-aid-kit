@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.2.0...v1.2.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **backend:** распознавать активность ферментов в РЛС ([#38](https://github.com/TurtleOld/home-first-aid-kit/issues/38)) ([db56657](https://github.com/TurtleOld/home-first-aid-kit/commit/db56657c010032839a057a4e56eace5d4ce7d40c))
+
 ## [1.2.0](https://github.com/TurtleOld/home-first-aid-kit/compare/v1.1.3...v1.2.0) (2026-06-13)
 
 
