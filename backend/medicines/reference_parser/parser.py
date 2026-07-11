@@ -168,6 +168,9 @@ def extract_shelf_life(text):
 
 def extract_form(text):
     forms = [
+        "таблетки, покрытые оболочкой",
+        "таблетки, покрытые пленочной оболочкой",
+        "таблетки, покрытые кишечнорастворимой оболочкой",
         "таблетки",
         "капсулы",
         "сироп",
@@ -194,7 +197,7 @@ def extract_form(text):
 
 def extract_dosage(text):
     match = re.search(
-        r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\b|\b\d+(?:[,.]\d+)?%",
+        r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|ед|ме|mg|g|ml|mcg|iu)\b|\b\d+(?:[,.]\d+)?%",
         text,
         flags=re.IGNORECASE,
     )
@@ -211,7 +214,7 @@ def extract_variant_form(text, dosage=""):
         value,
     )
     value = re.sub(
-        r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|mg|g|ml|mcg)\b|\b\d+(?:[,.]\d+)?%",
+        r"\b\d+(?:[,.]\d+)?\s*(?:мг|г|мл|мкг|ед|ме|mg|g|ml|mcg|iu)\b|\b\d+(?:[,.]\d+)?%",
         " ",
         value,
         flags=re.IGNORECASE,
@@ -374,7 +377,7 @@ def extract_variants_from_page(page):
         """
         () => {
             const normalize = (value) => String(value || '').replace(/\\s+/g, ' ').trim();
-            const UNIT_PATTERN = '\\\\d+(?:[,.]\\\\d+)?\\\\s*(?:мг/мл|мкг/мл|мг|мкг|мл|г|mg|mcg|ml|g)(?![а-яёa-z])|\\\\d+(?:[,.]\\\\d+)?%';
+            const UNIT_PATTERN = '\\\\d+(?:[,.]\\\\d+)?\\\\s*(?:мг/мл|мкг/мл|мг|мкг|мл|г|ед|ме|mg|mcg|ml|g|iu)(?![а-яёa-z])|\\\\d+(?:[,.]\\\\d+)?%';
             const dosageMatch = (text) => {
                 const match = text.match(new RegExp(UNIT_PATTERN, 'i'));
                 return match ? normalize(match[0]) : '';
